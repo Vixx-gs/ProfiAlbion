@@ -1,0 +1,73 @@
+<header class="nav">
+  <div class="nav__inner container">
+    <!-- Marca -->
+    <a class="brand" routerLink="/">
+      <span class="brand__mark">A</span>
+      <span class="brand__name">ProfiAlbion</span>
+    </a>
+
+    <!-- Menús centrales -->
+    <nav class="menu">
+      @for (m of menus; track m.label) {
+        <div class="menu__item">
+          <button class="menu__trigger" type="button">
+            {{ m.label }}
+            <svg class="menu__caret" viewBox="0 0 12 12" width="10" height="10">
+              <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+          </button>
+          <div class="menu__dropdown" [class.menu__dropdown--rich]="m.sections">
+            @if (m.sections) {
+              @for (s of m.sections; track s.title || $index) {
+                @if (s.title) {
+                  <span class="menu__section">{{ s.title }}</span>
+                }
+                @for (link of s.links; track link.label) {
+                  <a class="menu__rich-link">
+                    <img
+                      class="menu__rich-icon"
+                      [src]="'https://render.albiononline.com/v1/item/' + link.iconId + '.png?size=64'"
+                      [alt]="link.label"
+                      loading="lazy"
+                      width="28"
+                      height="28"
+                    />
+                    <span class="menu__rich-label">{{ link.label }}</span>
+                    @if (link.shortcut) {
+                      <kbd class="menu__kbd">{{ link.shortcut }}</kbd>
+                    }
+                  </a>
+                }
+              }
+            } @else {
+              @for (i of m.items; track i) {
+                <a class="menu__link">{{ i }}</a>
+              }
+            }
+          </div>
+        </div>
+      }
+    </nav>
+
+    <!-- Acciones derecha -->
+    <div class="actions">
+      <span class="version">{{ version }}</span>
+
+      <button class="icon-btn" type="button" title="Sugerir una idea" aria-label="Sugerir una idea">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z" />
+        </svg>
+      </button>
+
+      <button class="icon-btn" type="button" title="Actualizaciones" aria-label="Actualizaciones">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+        </svg>
+        <span class="icon-btn__dot"></span>
+      </button>
+
+      <button class="btn btn--login" type="button">Iniciar sesión</button>
+    </div>
+  </div>
+</header>

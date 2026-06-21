@@ -1,0 +1,122 @@
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <span class="hero__badge">
+      <span class="hero__dot"></span> Servidor Europa · datos en directo
+    </span>
+    <h1 class="hero__title">ProfiAlbion</h1>
+    <p class="hero__subtitle">
+      Domina la economía de Albion Online con calculadoras de profit para flipping de
+      mercado, farmeo, cocina y crafteo. Todo lo que necesitas para grindear de forma
+      inteligente.
+    </p>
+    <div class="hero__actions">
+      <button class="btn btn--primary" type="button">Calculadoras de Profit</button>
+      <button class="btn btn--ghost" type="button">Builds Meta</button>
+    </div>
+  </div>
+</section>
+
+<!-- Market flips en directo -->
+<section class="container">
+  <div class="flips">
+    <div class="flips__head">
+      <div>
+        <h2 class="flips__title">Top Market Flips</h2>
+        <p class="flips__hint">
+          Oportunidades de compra/venta entre ciudades del servidor de Europa
+          (datos del Albion Online Data Project).
+        </p>
+      </div>
+      <button class="btn btn--ghost btn--sm" type="button" (click)="loadFlips()">
+        Actualizar
+      </button>
+    </div>
+
+    @if (loading()) {
+      <div class="flips__state">Cargando precios…</div>
+    } @else if (error()) {
+      <div class="flips__state flips__state--error">{{ error() }}</div>
+    } @else if (flips().length === 0) {
+      <div class="flips__state">Sin oportunidades rentables ahora mismo.</div>
+    } @else {
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Actualizado</th>
+              <th>Comprar</th>
+              <th>Vender</th>
+              <th class="num">Beneficio</th>
+              <th class="num">Margen</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of flips(); track f.itemId + '|' + f.quality) {
+              <tr>
+                <td class="cell-item">
+                  <img
+                    class="item-icon"
+                    [src]="'https://render.albiononline.com/v1/item/' + f.itemId + '.png?size=64'"
+                    [alt]="f.name"
+                    loading="lazy"
+                    width="40"
+                    height="40"
+                  />
+                  <span class="item-text">
+                    <span class="item-name">{{ f.name }}</span>
+                    <span class="item-quality" [class]="'q' + f.quality">
+                      {{ qualityLabel(f.quality) }}
+                    </span>
+                  </span>
+                </td>
+                <td class="cell-dim">
+                  <span class="freshdot" [class]="'freshdot--' + freshness(f.updatedAt)"></span>
+                  {{ ago(f.updatedAt) }}
+                </td>
+                <td>
+                  <span class="city">{{ f.buyCity }}</span>
+                  <span class="price">{{ f.buyPrice | number: '1.0-0' }} <i>plata</i></span>
+                </td>
+                <td>
+                  <span class="city">{{ f.sellCity }}</span>
+                  <span class="sell-price">
+                    <span class="price">{{ f.sellPrice | number: '1.0-0' }} <i>plata</i></span>
+                    <button
+                      class="pop-toggle"
+                      type="button"
+                      title="Ver compra instantánea"
+                      (click)="togglePopover(f.itemId + '|' + f.quality, $event)"
+                    >
+                      <svg viewBox="0 0 12 12" width="11" height="11">
+                        <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
+                      </svg>
+                    </button>
+
+                    @if (openPopover() === f.itemId + '|' + f.quality) {
+                      <span class="pop" (click)="$event.stopPropagation()">
+                        <span class="pop__label">Compra instantánea</span>
+                        @if (f.sellBuyMax) {
+                          <span class="pop__price">{{ f.sellBuyMax | number: '1.0-0' }} <i>plata</i></span>
+                        } @else {
+                          <span class="pop__empty">Sin órdenes de compra</span>
+                        }
+                      </span>
+                    }
+                  </span>
+                </td>
+                <td class="num profit">+{{ f.profit | number: '1.0-0' }}</td>
+                <td class="num profit">{{ f.marginPct | number: '1.0-0' }} %</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flips__foot">
+        <button class="btn btn--primary" type="button">Abrir calculadora de flips</button>
+      </div>
+    }
+  </div>
+</section>
