@@ -76,14 +76,6 @@
   <div class="card filters2">
     <div class="filters2__grid">
       <label class="f2">
-        <span class="f2__label">Flip Type</span>
-        <select class="f2__input" (change)="setFlipType($event.target)">
-          <option value="all" [selected]="flipType() === 'all'">Todos</option>
-          <option value="direct" [selected]="flipType() === 'direct'">Direct</option>
-          <option value="upgrade" [selected]="flipType() === 'upgrade'">Upgrade</option>
-        </select>
-      </label>
-      <label class="f2">
         <span class="f2__label">Search By Name</span>
         <input class="f2__input" type="text" placeholder="Buscar items…" [value]="search()" (input)="setSearch($event.target)" />
       </label>

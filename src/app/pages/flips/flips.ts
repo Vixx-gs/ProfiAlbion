@@ -10,7 +10,6 @@ import {
 import { AlbionDataService } from '../../core/albion-data.service';
 import { TIERS } from '../../core/items.catalog';
 
-type FlipTypeFilter = 'all' | FlipType;
 type SortKey = 'update' | 'profit' | 'margin';
 
 /** Color identificativo de cada ciudad (puntos de la lista de ubicaciones). */
@@ -57,7 +56,6 @@ export class Flips {
   readonly error = signal<string | null>(null);
 
   // ===== Filtros de cliente (panel 2, en vivo) =====
-  readonly flipType = signal<FlipTypeFilter>('all');
   readonly search = signal('');
   readonly sortBy = signal<SortKey>('update');
   readonly minProfit = signal(0);
@@ -76,14 +74,12 @@ export class Flips {
   readonly displayed = computed<MarketFlip[]>(() => {
     const res = this.result();
     if (!res) return [];
-    const ft = this.flipType();
     const q = this.search().trim().toLowerCase();
     const mp = this.minProfit();
     const hid = this.hidden();
 
     const arr = res.flips.filter(
       (f) =>
-        (ft === 'all' || f.type === ft) &&
         f.profit >= mp &&
         (!q || f.name.toLowerCase().includes(q)) &&
         !hid.has(this.rowKey(f)),
@@ -159,9 +155,6 @@ export class Flips {
 
   // ===== Filtros de cliente =====
 
-  setFlipType(target: EventTarget | null): void {
-    this.flipType.set((target as HTMLSelectElement).value as FlipTypeFilter);
-  }
   setSearch(target: EventTarget | null): void {
     this.search.set((target as HTMLInputElement).value);
   }
@@ -180,7 +173,6 @@ export class Flips {
     this.selQualities.set(new Set([1, 2, 3, 4, 5]));
     this.selTiers.set(new Set(TIERS));
     // Panel 2 a por defecto.
-    this.flipType.set('all');
     this.search.set('');
     this.sortBy.set('update');
     this.minProfit.set(0);
