@@ -77,7 +77,37 @@
     <div class="filters2__grid">
       <label class="f2">
         <span class="f2__label">Search By Name</span>
-        <input class="f2__input" type="text" placeholder="Buscar items…" [value]="search()" (input)="setSearch($event.target)" />
+        <div class="combo" (click)="$event.stopPropagation()">
+          <input
+            class="f2__input combo__input"
+            type="text"
+            placeholder="Buscar items…"
+            autocomplete="off"
+            [value]="search()"
+            (input)="setSearch($event.target)"
+            (focus)="openSearch()"
+          />
+          @if (search()) {
+            <button class="combo__clear" type="button" title="Limpiar" (click)="clearSearch()">✕</button>
+          }
+          @if (searchOpen() && suggestions().length) {
+            <div class="combo__list">
+              @for (opt of suggestions(); track opt.id) {
+                <button class="combo__opt" type="button" (click)="selectItem(opt)">
+                  <img
+                    class="combo__icon"
+                    [src]="iconUrl(opt.id)"
+                    [alt]="opt.name"
+                    loading="lazy"
+                    width="30"
+                    height="30"
+                  />
+                  <span class="combo__name">{{ opt.name }}</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
       </label>
       <label class="f2">
         <span class="f2__label">Sort By</span>

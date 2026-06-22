@@ -8,9 +8,17 @@ import {
   ScanParams,
 } from '../../core/market-flips.service';
 import { AlbionDataService } from '../../core/albion-data.service';
-import { TIERS } from '../../core/items.catalog';
+import { ITEM_CATALOG, ENCHANTS, TIERS, displayName } from '../../core/items.catalog';
 
 type SortKey = 'update' | 'profit' | 'margin';
+
+/** Opción del buscador: una variante de item (con tier y encantamiento). */
+interface ItemOption {
+  /** Id completo (con encantamiento), p.ej. "T6_MAIN_DAGGER@2". */
+  id: string;
+  /** Nombre mostrado, p.ej. "Daga del maestro (T6.2)". */
+  name: string;
+}
 
 /** Color identificativo de cada ciudad (puntos de la lista de ubicaciones). */
 const CITY_COLORS: Record<string, string> = {
@@ -61,6 +69,25 @@ export class Flips {
   readonly search = signal('');
   readonly sortBy = signal<SortKey>('update');
   readonly minProfit = signal(0);
+
+  /** Buscador con desplegable: todas las variantes del catálogo (tier + encant.). */
+  readonly itemOptions: ItemOption[] = ITEM_CATALOG.flatMap((it) =>
+    ENCHANTS.map((e) => {
+      const id = e === 0 ? it.id : `${it.id}@${e}`;
+      return { id, name: displayName(id) };
+    }),
+  ).sort((a, b) => a.name.localeCompare(b.name, 'es'));
+
+  /** ¿Está abierto el desplegable del buscador? */
+  readonly searchOpen = signal(false);
+
+  /** Opciones que coinciden con lo escrito (máx. 60 para no saturar). */
+  readonly suggestions = computed<ItemOption[]>(() => {
+    const q = this.search().trim().toLowerCase();
+    const all = this.itemOptions;
+    const matches = q ? all.filter((o) => o.name.toLowerCase().includes(q)) : all;
+    return matches.slice(0, 60);
+  });
 
   /** Filas que se muestran de golpe / se añaden con "Ver más". */
   private readonly PAGE_STEP = 15;
@@ -183,7 +210,28 @@ export class Flips {
 
   setSearch(target: EventTarget | null): void {
     this.search.set((target as HTMLInputElement).value);
+    this.searchOpen.set(true);
     this.resetPage();
+  }
+  /** Abre el desplegable al enfocar el buscador. */
+  openSearch(): void {
+    this.searchOpen.set(true);
+  }
+  /** Selecciona un item del desplegable: filtra la tabla por su nombre exacto. */
+  selectItem(opt: ItemOption): void {
+    this.search.set(opt.name);
+    this.searchOpen.set(false);
+    this.resetPage();
+  }
+  /** Limpia el buscador. */
+  clearSearch(): void {
+    this.search.set('');
+    this.searchOpen.set(false);
+    this.resetPage();
+  }
+  /** URL del icono de un item (con su encantamiento). */
+  iconUrl(id: string): string {
+    return `https://render.albiononline.com/v1/item/${id}.png?size=64`;
   }
   setSort(target: EventTarget | null): void {
     this.sortBy.set((target as HTMLSelectElement).value as SortKey);
@@ -300,6 +348,7 @@ export class Flips {
   @HostListener('document:click')
   closePopover(): void {
     this.openPopover.set(null);
+    this.searchOpen.set(false);
   }
 
   // ===== Atajo de teclado: "A" = Fetch Flips =====
