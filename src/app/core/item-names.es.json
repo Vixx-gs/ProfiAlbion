@@ -15,6 +15,8 @@
   "T6_ARMOR_PLATE_SET1": "Armadura de soldado del maestro",
   "T6_HEAD_PLATE_SET1": "Casco de soldado del maestro",
   "T6_SHOES_PLATE_SET1": "Botas de soldado del maestro",
+  "T6_BAG": "Bolsa del maestro",
+  "T6_CAPE": "Capa del maestro",
   "T7_2H_HAMMER": "Gran martillo del gran maestro",
   "T7_2H_AXE": "Gran hacha del gran maestro",
   "T7_2H_ARCANESTAFF": "Gran bastón arcano del gran maestro",
@@ -31,6 +33,8 @@
   "T7_ARMOR_PLATE_SET1": "Armadura de soldado del gran maestro",
   "T7_HEAD_PLATE_SET1": "Casco de soldado del gran maestro",
   "T7_SHOES_PLATE_SET1": "Botas de soldado del gran maestro",
+  "T7_BAG": "Bolsa del gran maestro",
+  "T7_CAPE": "Capa del gran maestro",
   "T8_2H_HAMMER": "Gran martillo del anciano",
   "T8_2H_AXE": "La mano de Khor",
   "T8_2H_ARCANESTAFF": "Gran bastón arcano del anciano",
@@ -46,5 +50,7 @@
   "T8_ARMOR_LEATHER_SET1": "Chaqueta de mercenario del anciano",
   "T8_ARMOR_PLATE_SET1": "Armadura de soldado del anciano",
   "T8_HEAD_PLATE_SET1": "Casco de soldado del anciano",
-  "T8_SHOES_PLATE_SET1": "Botas de soldado del anciano"
+  "T8_SHOES_PLATE_SET1": "Botas de soldado del anciano",
+  "T8_BAG": "Bolsa del anciano",
+  "T8_CAPE": "Capa del anciano"
 }

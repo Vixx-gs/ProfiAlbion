@@ -23,6 +23,8 @@ const RESOURCE_COUNT: Record<ItemCategory, number> = {
   armor: 16,
   head: 8,
   shoes: 8,
+  bag: 32, // 192 materiales de encantamiento por nivel
+  cape: 16, // 96 materiales por nivel
 };
 
 /** Materiales de encantamiento por nivel objetivo (1=Runa, 2=Alma, 3=Reliquia). */

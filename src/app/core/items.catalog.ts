@@ -2,7 +2,7 @@
 import NAMES_ES from './item-names.es.json';
 
 /** Categoría de equipo (determina los recursos de crafteo y, con ello, el coste de encantar). */
-export type ItemCategory = 'weapon-1h' | 'weapon-2h' | 'armor' | 'head' | 'shoes';
+export type ItemCategory = 'weapon-1h' | 'weapon-2h' | 'armor' | 'head' | 'shoes' | 'bag' | 'cape';
 
 export interface CatalogItem {
   /** Id base sin encantamiento, p.ej. "T6_2H_HAMMER". */
@@ -39,6 +39,8 @@ function categoryOf(typeKey: string): ItemCategory {
   if (typeKey.startsWith('MAIN_')) return 'weapon-1h';
   if (typeKey.startsWith('HEAD_')) return 'head';
   if (typeKey.startsWith('SHOES_')) return 'shoes';
+  if (typeKey === 'BAG') return 'bag';
+  if (typeKey === 'CAPE') return 'cape';
   return 'armor';
 }
 
