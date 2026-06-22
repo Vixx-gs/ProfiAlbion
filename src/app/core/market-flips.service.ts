@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, from, map, merge, mergeMap, of, timeout, toArray, catchError } from 'rxjs';
+import { Observable, from, map, mergeMap, of, scan, timeout, catchError } from 'rxjs';
 import { AlbionDataService, PriceEntry } from './albion-data.service';
 import {
   ITEM_CATALOG,
@@ -66,8 +66,8 @@ export class MarketFlipsService {
   private readonly MAX_AGE_HOURS = 24;
   /** Timeout por petición (ms): si un lote tarda más, se ignora. */
   private readonly REQUEST_TIMEOUT = 20_000;
-  /** Lotes en paralelo (por debajo del límite de conexiones del navegador). */
-  private readonly CONCURRENCY = 4;
+  /** Lotes en paralelo (= límite de conexiones del navegador por host). */
+  private readonly CONCURRENCY = 6;
   /** Máximo de filas devueltas. */
   private readonly MAX_RESULTS = 1000;
 
@@ -79,9 +79,9 @@ export class MarketFlipsService {
    */
   getTopFlips(limit = 10): Observable<MarketFlip[]> {
     const ids = this.expandItemIds(ITEM_CATALOG.map((i) => i.id));
-    return this.fetchPrices(ids, AlbionDataService.CITIES, [1, 2, 3, 4, 5]).pipe(
-      map((entries) => this.computeBlackMarketFlips(entries)),
-      map((flips) => flips.slice(0, limit)),
+    // streamPrices emite tras cada lote, así la home muestra filas según llegan.
+    return this.streamPrices(ids, AlbionDataService.CITIES, [1, 2, 3, 4, 5]).pipe(
+      map((entries) => this.computeBlackMarketFlips(entries).slice(0, limit)),
     );
   }
 
@@ -97,17 +97,31 @@ export class MarketFlipsService {
       ? params.tiers.flatMap((t) => enchantMaterialIds(t))
       : [];
 
-    // Los items se piden con las calidades elegidas; los materiales SOLO con
-    // calidad 1 (no tienen otras) en su propia petición ligera, para que pedir
-    // varias calidades no los multiplique y atasque la API.
-    const items$ = this.fetchPrices(itemIds, params.locations, params.qualities);
-    const mats$ = matIds.length
-      ? this.fetchPrices(matIds, params.locations, [1])
-      : of([] as PriceEntry[]);
+    const CHUNK = 40;
+    const reqs: { ids: string[]; qualities: number[] }[] = [];
+    // Materiales primero (petición ligera, calidad 1): entran en los primeros
+    // lotes para que los flips de encantamiento aparezcan pronto.
+    for (let i = 0; i < matIds.length; i += CHUNK) {
+      reqs.push({ ids: matIds.slice(i, i + CHUNK), qualities: [1] });
+    }
+    for (let i = 0; i < itemIds.length; i += CHUNK) {
+      reqs.push({ ids: itemIds.slice(i, i + CHUNK), qualities: params.qualities });
+    }
 
-    return merge(items$, mats$).pipe(
-      toArray(),
-      map((parts) => this.buildResult(parts.flat(), params)),
+    // Un único flujo con tope de concurrencia: se acumulan los precios y se
+    // emite un resultado parcial tras CADA lote, así la tabla aparece enseguida
+    // y va creciendo en vez de esperar a que termine todo el escaneo.
+    return from(reqs).pipe(
+      mergeMap(
+        (req) =>
+          this.api.getPrices(req.ids, params.locations, req.qualities).pipe(
+            timeout(this.REQUEST_TIMEOUT),
+            catchError(() => of([] as PriceEntry[])),
+          ),
+        this.CONCURRENCY,
+      ),
+      scan((acc, batch) => acc.concat(batch), [] as PriceEntry[]),
+      map((entries) => this.buildResult(entries, params)),
     );
   }
 
@@ -122,19 +136,23 @@ export class MarketFlipsService {
     return out;
   }
 
-  /** Pide precios en lotes para no exceder la longitud máxima de URL. */
-  private fetchPrices(
+  /**
+   * Pide precios en lotes (concurrencia limitada) y emite los precios acumulados
+   * tras CADA lote, para mostrar resultados parciales mientras se escanea.
+   * La concurrencia limitada hace además que el timeout de cada lote empiece al
+   * arrancar la petición —no al suscribirse— evitando abortos por cola.
+   */
+  private streamPrices(
     ids: string[],
     locations: string[],
     qualities: number[],
+    seed: PriceEntry[] = [],
   ): Observable<PriceEntry[]> {
     const CHUNK = 40;
     const chunks: string[][] = [];
     for (let i = 0; i < ids.length; i += CHUNK) {
       chunks.push(ids.slice(i, i + CHUNK));
     }
-    // mergeMap con concurrencia limitada: el timeout de cada lote empieza cuando
-    // la petición arranca de verdad, no al suscribirse (evita abortos por cola).
     return from(chunks).pipe(
       mergeMap(
         (slice) =>
@@ -144,8 +162,7 @@ export class MarketFlipsService {
           ),
         this.CONCURRENCY,
       ),
-      toArray(),
-      map((results) => results.flat()),
+      scan((acc, batch) => acc.concat(batch), [...seed]),
     );
   }
 

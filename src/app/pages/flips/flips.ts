@@ -53,6 +53,8 @@ export class Flips {
   // ===== Resultado =====
   readonly result = signal<FlipResult | null>(null);
   readonly loading = signal(false);
+  /** Sigue llegando datos del escaneo (emisiones parciales en curso). */
+  readonly streaming = signal(false);
   readonly error = signal<string | null>(null);
 
   // ===== Filtros de cliente (panel 2, en vivo) =====
@@ -136,19 +138,23 @@ export class Flips {
 
     const params: ScanParams = { scanTypes, locations, qualities, tiers };
     this.loading.set(true);
+    this.streaming.set(true);
     this.error.set(null);
     this.resetPage();
     // Cancela un escaneo anterior aún en vuelo para no competir por conexiones.
     this.scanSub?.unsubscribe();
     this.scanSub = this.service.getFlips(params).subscribe({
       next: (res) => {
+        // Cada emisión es un resultado parcial que va creciendo.
         this.result.set(res);
         this.loading.set(false);
       },
       error: () => {
         this.error.set('No se pudieron cargar los precios. Inténtalo de nuevo.');
         this.loading.set(false);
+        this.streaming.set(false);
       },
+      complete: () => this.streaming.set(false),
     });
   }
 

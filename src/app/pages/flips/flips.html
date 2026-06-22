@@ -109,6 +109,9 @@
           <p class="results__meta">
             Mostrando {{ visible().length | number: '1.0-0' }} de {{ displayed().length | number: '1.0-0' }}.
             Datos {{ fetchedAgo() }}. Analizadas {{ res.analysed | number: '1.0-0' }} combinaciones.
+            @if (streaming()) {
+              <span class="results__live">· escaneando más…</span>
+            }
           </p>
         }
       </div>
