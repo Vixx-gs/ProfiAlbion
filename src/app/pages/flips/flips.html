@@ -107,8 +107,8 @@
         <h2 class="results__title">Top Market Flips</h2>
         @if (result(); as res) {
           <p class="results__meta">
-            Mostrando hasta {{ displayed().length | number: '1.0-0' }} items. Datos {{ fetchedAgo() }}.
-            Analizadas {{ res.analysed | number: '1.0-0' }} combinaciones.
+            Mostrando {{ visible().length | number: '1.0-0' }} de {{ displayed().length | number: '1.0-0' }}.
+            Datos {{ fetchedAgo() }}. Analizadas {{ res.analysed | number: '1.0-0' }} combinaciones.
           </p>
         }
       </div>
@@ -147,7 +147,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (f of displayed(); track rowKey(f)) {
+            @for (f of visible(); track rowKey(f)) {
               <tr>
                 <td class="cell-item">
                   <img
@@ -224,6 +224,14 @@
           </tbody>
         </table>
       </div>
+
+      @if (hasMore()) {
+        <div class="results__more">
+          <button class="btn btn--ghost btn--sm" type="button" (click)="showMore()">
+            Ver más ({{ displayed().length - visible().length | number: '1.0-0' }} restantes)
+          </button>
+        </div>
+      }
     }
   </div>
 </section>

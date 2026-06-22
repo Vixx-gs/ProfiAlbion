@@ -189,6 +189,7 @@
 .results__meta { margin: 6px 0 0; font-size: 13px; color: var(--text-dim); }
 .results__actions { display: flex; gap: 8px; flex: none; }
 .results__state { padding: 54px; text-align: center; color: var(--text-muted); }
+.results__more { display: flex; justify-content: center; margin-top: 18px; }
 .results__state--error { color: var(--danger); }
 
 /* ===== Tabla ===== */

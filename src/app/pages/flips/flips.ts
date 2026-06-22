@@ -60,6 +60,10 @@ export class Flips {
   readonly sortBy = signal<SortKey>('update');
   readonly minProfit = signal(0);
 
+  /** Filas que se muestran de golpe / se añaden con "Ver más". */
+  private readonly PAGE_STEP = 15;
+  readonly visibleCount = signal(this.PAGE_STEP);
+
   // ===== Persistencia (localStorage) =====
   readonly saved = signal<Set<string>>(this.loadSet('flips.saved'));
   readonly hidden = signal<Set<string>>(this.loadSet('flips.hidden'));
@@ -93,6 +97,21 @@ export class Flips {
     });
   });
 
+  /** Filas realmente pintadas (paginación incremental sobre `displayed`). */
+  readonly visible = computed<MarketFlip[]>(() => this.displayed().slice(0, this.visibleCount()));
+
+  /** ¿Quedan más filas tras las visibles? */
+  readonly hasMore = computed(() => this.displayed().length > this.visibleCount());
+
+  showMore(): void {
+    this.visibleCount.update((n) => n + this.PAGE_STEP);
+  }
+
+  /** Vuelve a empezar por las primeras 15 (al filtrar o reescanear). */
+  private resetPage(): void {
+    this.visibleCount.set(this.PAGE_STEP);
+  }
+
   constructor() {
     // Carga inicial con los parámetros por defecto (como el inicio).
     this.fetchFlips();
@@ -118,6 +137,7 @@ export class Flips {
     const params: ScanParams = { scanTypes, locations, qualities, tiers };
     this.loading.set(true);
     this.error.set(null);
+    this.resetPage();
     // Cancela un escaneo anterior aún en vuelo para no competir por conexiones.
     this.scanSub?.unsubscribe();
     this.scanSub = this.service.getFlips(params).subscribe({
@@ -157,12 +177,15 @@ export class Flips {
 
   setSearch(target: EventTarget | null): void {
     this.search.set((target as HTMLInputElement).value);
+    this.resetPage();
   }
   setSort(target: EventTarget | null): void {
     this.sortBy.set((target as HTMLSelectElement).value as SortKey);
+    this.resetPage();
   }
   setMinProfit(target: EventTarget | null): void {
     this.minProfit.set(Number((target as HTMLInputElement).value) || 0);
+    this.resetPage();
   }
 
   resetFilters(): void {
@@ -176,6 +199,7 @@ export class Flips {
     this.search.set('');
     this.sortBy.set('update');
     this.minProfit.set(0);
+    this.resetPage();
   }
 
   // ===== Acciones de fila (persistentes) =====
