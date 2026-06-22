@@ -388,14 +388,10 @@ export class MarketFlipsService {
       }
     }
 
-    const tier = (iso: string): number => {
-      const min = (Date.now() - new Date(iso + 'Z').getTime()) / 60000;
-      if (min <= 60) return 0;
-      if (min <= 6 * 60) return 1;
-      return 2;
-    };
+    // Primero los más recientes; a igualdad de fecha, los de mayor beneficio.
+    const time = (iso: string): number => new Date(iso + 'Z').getTime();
     return flips.sort((a, b) => {
-      const t = tier(a.updatedAt) - tier(b.updatedAt);
+      const t = time(b.updatedAt) - time(a.updatedAt);
       return t !== 0 ? t : b.profit - a.profit;
     });
   }
