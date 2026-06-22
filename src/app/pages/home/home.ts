@@ -1,10 +1,11 @@
 import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { MarketFlipsService, MarketFlip } from '../../core/market-flips.service';
 
 @Component({
   selector: 'app-home',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, RouterLink],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
