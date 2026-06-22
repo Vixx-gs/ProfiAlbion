@@ -23,7 +23,7 @@
                   <span class="menu__section">{{ s.title }}</span>
                 }
                 @for (link of s.links; track link.label) {
-                  <a class="menu__rich-link">
+                  <a class="menu__rich-link" [routerLink]="link.route ?? null" [class.menu__rich-link--nav]="link.route">
                     <img
                       class="menu__rich-icon"
                       [src]="'https://render.albiononline.com/v1/item/' + link.iconId + '.png?size=64'"

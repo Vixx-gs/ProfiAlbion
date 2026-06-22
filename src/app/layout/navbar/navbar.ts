@@ -6,6 +6,8 @@ interface NavLink {
   /** Item id de Albion para el icono (se renderiza con render.albiononline.com). */
   iconId?: string;
   shortcut?: string;
+  /** Ruta interna a la que navega (si la tiene). */
+  route?: string;
 }
 
 interface NavSection {
@@ -41,7 +43,7 @@ export class Navbar {
             { label: 'Calculadora de Trabajadores', iconId: 'T8_JOURNAL_WOOD' },
             { label: 'Calculadora de Encantamiento', iconId: 'T8_RUNE' },
             { label: 'Calculadora de Refinado', iconId: 'T8_METALBAR', shortcut: 'Ctrl + 6' },
-            { label: 'Calculadora de Flipping de Mercado', iconId: 'T8_BAG', shortcut: 'Ctrl + 3' },
+            { label: 'Calculadora de Flipping de Mercado', iconId: 'T8_BAG', shortcut: 'Ctrl + 3', route: '/flips' },
             { label: 'Calculadora de Cocina', iconId: 'T8_MEAL_STEW', shortcut: 'Ctrl + 4' },
             { label: 'Calculadora de Alquimia', iconId: 'T8_POTION_LAVA', shortcut: 'Ctrl + 5' },
             { label: 'Calculadora de Pescado Troceado', iconId: 'T8_FISH_FRESHWATER_ALL_COMMON' },
