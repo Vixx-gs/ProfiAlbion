@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { MarketFlipsService, MarketFlip } from '../../core/market-flips.service';
 
@@ -11,9 +11,23 @@ import { MarketFlipsService, MarketFlip } from '../../core/market-flips.service'
 export class Home {
   private readonly flipsService = inject(MarketFlipsService);
 
+  /** Cuántas oportunidades pedimos a la API. */
+  private readonly FETCH_LIMIT = 40;
+  /** Filas que se añaden cada vez que se pulsa "Ver más". */
+  private readonly PAGE_STEP = 8;
+
   readonly flips = signal<MarketFlip[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+
+  /** Cuántas filas se muestran (paginación incremental). */
+  readonly visibleCount = signal(this.PAGE_STEP);
+
+  /** Filas realmente visibles según la paginación. */
+  readonly visible = computed<MarketFlip[]>(() => this.flips().slice(0, this.visibleCount()));
+
+  /** ¿Quedan más filas por mostrar tras las visibles? */
+  readonly hasMore = computed(() => this.flips().length > this.visibleCount());
 
   /** itemId de la fila con el bocadillo de "compra instantánea" abierto. */
   readonly openPopover = signal<string | null>(null);
@@ -35,7 +49,8 @@ export class Home {
   loadFlips(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.flipsService.getTopFlips(8).subscribe({
+    this.visibleCount.set(this.PAGE_STEP);
+    this.flipsService.getTopFlips(this.FETCH_LIMIT).subscribe({
       next: (flips) => {
         this.flips.set(flips);
         this.loading.set(false);
@@ -45,6 +60,10 @@ export class Home {
         this.loading.set(false);
       },
     });
+  }
+
+  showMore(): void {
+    this.visibleCount.update((n) => n + this.PAGE_STEP);
   }
 
   private readonly QUALITY_LABELS: Record<number, string> = {

@@ -213,6 +213,8 @@
 .table tbody tr:nth-child(7) { animation-delay: 0.26s; }
 .table tbody tr:nth-child(8) { animation-delay: 0.30s; }
 .table tbody tr:hover { background: linear-gradient(90deg, var(--bg-hover), transparent 90%); }
+/* La fila con el bocadillo abierto se eleva sobre las demás para que no la tapen. */
+.table tbody tr:has(.pop) { z-index: 30; }
 /* Barra dorada al pasar el ratón */
 .table tbody td:first-child { box-shadow: inset 3px 0 0 transparent; transition: box-shadow 0.18s; }
 .table tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 var(--gold); }
@@ -343,6 +345,8 @@
 
 .flips__foot {
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 14px;
   margin-top: 24px;
 }

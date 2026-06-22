@@ -55,7 +55,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (f of flips(); track f.itemId + '|' + f.quality) {
+            @for (f of visible(); track f.itemId + '|' + f.quality) {
               <tr>
                 <td class="cell-item">
                   <img
@@ -117,6 +117,11 @@
       </div>
 
       <div class="flips__foot">
+        @if (hasMore()) {
+          <button class="btn btn--ghost btn--sm" type="button" (click)="showMore()">
+            Ver más
+          </button>
+        }
         <button class="btn btn--primary" type="button">Abrir calculadora de flips</button>
       </div>
     }
