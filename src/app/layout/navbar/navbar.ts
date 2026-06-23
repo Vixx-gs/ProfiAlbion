@@ -51,7 +51,29 @@ export class Navbar {
         },
       ],
     },
-    { label: 'Herramientas', items: ['Buscador de precios', 'Precio del oro', 'Refinado'] },
+    {
+      label: 'Herramientas',
+      sections: [
+        {
+          links: [
+            { label: 'Comprobador de precios', iconId: 'T8_JOURNAL_WOOD', shortcut: 'Ctrl + 8' },
+            { label: 'Precios de recursos', iconId: 'T8_METALBAR' },
+            { label: 'Mapa de Avalon', iconId: 'T8_RELIC' },
+            { label: 'Gestión de islas', iconId: 'T8_PUMPKIN' },
+            { label: 'Mercado de la isla', iconId: 'T8_BAG' },
+            { label: 'Temporizadores', iconId: 'T8_POTION_LAVA' },
+            { label: 'Historial del precio del oro', iconId: 'T4_SKILLBOOK_STANDARD' },
+          ],
+        },
+        {
+          title: 'Suscripción',
+          links: [
+            { label: 'Planificador de crafteo', iconId: 'T8_2H_HAMMER', shortcut: 'Ctrl + 7' },
+            { label: 'Gestión de maestrías', iconId: 'T8_RUNE' },
+          ],
+        },
+      ],
+    },
     { label: 'Builds', items: ['Builds Meta', 'PvP', 'PvE'] },
     { label: 'Guías', items: ['Para empezar', 'Economía', 'Mazmorras'] },
     { label: 'Tablas', items: ['Items', 'Recursos', 'Encantamientos'] },
