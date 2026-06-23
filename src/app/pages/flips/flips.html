@@ -3,28 +3,13 @@
     <h1 class="fp__title">Calculadora de Flipping de Mercado</h1>
     <p class="fp__sub">
       Compra barato en cualquier ciudad y vende siempre en el <strong>Black Market</strong> (nunca se
-      compra allí). Incluye rutas de <strong>encantamiento</strong> (comprar base y subir con
-      runas/almas/reliquias).
+      compra allí).
     </p>
   </header>
 
   <!-- ===== Panel 1: parámetros de escaneo ===== -->
   <div class="card scan">
     <div class="scan__grid">
-      <div class="grp">
-        <span class="grp__title">Scan Types</span>
-        <div class="grp__opts">
-          <button class="sw" [class.sw--on]="selDirect()" type="button" (click)="toggleScan('direct')">
-            <span class="sw__track"><span class="sw__knob"></span></span>
-            <span class="sw__label">Direct</span>
-          </button>
-          <button class="sw" [class.sw--on]="selUpgrade()" type="button" (click)="toggleScan('upgrade')">
-            <span class="sw__track"><span class="sw__knob"></span></span>
-            <span class="sw__label">Upgrade</span>
-          </button>
-        </div>
-      </div>
-
       <div class="grp">
         <span class="grp__title">Ruta</span>
         <div class="route">
@@ -171,7 +156,6 @@
           <thead>
             <tr>
               <th>Item</th>
-              <th>Type</th>
               <th>Last Update</th>
               <th>Buy</th>
               <th>Sell</th>
@@ -196,15 +180,7 @@
                     <span class="item-name">{{ f.name }}</span>
                     <span class="item-sub">
                       <span class="item-quality" [class]="'q' + f.quality">{{ qualityLabel(f.quality) }}</span>
-                      @if (f.type === 'upgrade') {
-                        <span class="item-up">· {{ upgradeLabel(f) }}</span>
-                      }
                     </span>
-                  </span>
-                </td>
-                <td>
-                  <span class="badge" [class.badge--up]="f.type === 'upgrade'">
-                    {{ f.type === 'upgrade' ? 'Upgrade' : 'Direct' }}
                   </span>
                 </td>
                 <td class="cell-dim">

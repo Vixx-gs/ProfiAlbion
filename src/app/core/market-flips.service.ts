@@ -2,12 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, from, map, mergeMap, of, scan, timeout, catchError } from 'rxjs';
 import { AlbionDataService, PriceEntry } from './albion-data.service';
 import { ITEM_CATALOG, ITEM_BY_ID, ENCHANTS, displayName } from './items.catalog';
-import { enchantMaterialId, enchantMaterialIds, enchantQty } from './enchant';
 
-/** Tipo de flip: directo (mismo item) o por encantamiento (comprar base y subir). */
-export type FlipType = 'direct' | 'upgrade';
-
-/** Una oportunidad de flip. */
+/** Una oportunidad de flip: comprar en una ciudad normal y vender en el Black Market. */
 export interface MarketFlip {
   /** Id completo (con encantamiento) del item que se vende. */
   itemId: string;
@@ -16,9 +12,7 @@ export interface MarketFlip {
   tier: number;
   /** Calidad del item (1-5). */
   quality: number;
-  type: FlipType;
   buyCity: string;
-  /** Para 'upgrade' es el coste total (item base + materiales de encantamiento). */
   buyPrice: number;
   sellCity: string;
   sellPrice: number;
@@ -28,15 +22,10 @@ export interface MarketFlip {
   marginPct: number;
   /** Fecha del dato más antiguo usado (para "última actualización"). */
   updatedAt: string;
-  /** Solo 'upgrade': nivel de encantamiento del item base que se compra. */
-  upgradeFromEnchant?: number;
-  /** Solo 'upgrade': número de pasos de encantamiento aplicados. */
-  upgradeSteps?: number;
 }
 
 /** Parámetros del escaneo (panel "Fetch Flips"). */
 export interface ScanParams {
-  scanTypes: FlipType[];
   qualities: number[];
   tiers: number[];
 }
@@ -81,24 +70,14 @@ export class MarketFlipsService {
 
   // ===== Vista de flipping: escaneo parametrizado =====
 
-  /** Escanea según parámetros y devuelve flips directos y/o de encantamiento. */
+  /** Escanea según parámetros y devuelve los flips directos encontrados. */
   getFlips(params: ScanParams): Observable<FlipResult> {
     const bases = ITEM_CATALOG.filter((i) => params.tiers.includes(i.tier));
     const itemIds = this.expandItemIds(bases.map((i) => i.id));
     const locations = AlbionDataService.CITIES;
 
-    // Materiales de encantamiento (solo si se va a calcular 'upgrade').
-    const matIds = params.scanTypes.includes('upgrade')
-      ? params.tiers.flatMap((t) => enchantMaterialIds(t))
-      : [];
-
     const CHUNK = 40;
     const reqs: { ids: string[]; qualities: number[] }[] = [];
-    // Materiales primero (petición ligera, calidad 1): entran en los primeros
-    // lotes para que los flips de encantamiento aparezcan pronto.
-    for (let i = 0; i < matIds.length; i += CHUNK) {
-      reqs.push({ ids: matIds.slice(i, i + CHUNK), qualities: [1] });
-    }
     for (let i = 0; i < itemIds.length; i += CHUNK) {
       reqs.push({ ids: itemIds.slice(i, i + CHUNK), qualities: params.qualities });
     }
@@ -189,35 +168,21 @@ export class MarketFlipsService {
     return byId;
   }
 
-  /** Construye el resultado completo (directos + encantamiento). */
+  /** Construye el resultado completo (flips directos). */
   private buildResult(entries: PriceEntry[], params: ScanParams): FlipResult {
     const byId = this.indexFresh(entries, AlbionDataService.CITIES);
     const flips: MarketFlip[] = [];
     let analysed = 0;
 
-    const wantDirect = params.scanTypes.includes('direct');
-    const wantUpgrade = params.scanTypes.includes('upgrade');
-    const qualities = params.qualities;
-
     for (const item of ITEM_CATALOG) {
       if (!params.tiers.includes(item.tier)) continue;
 
-      for (const q of qualities) {
+      for (const q of params.qualities) {
         // --- Flip directo: comprar en cualquier ciudad y vender en Black Market ---
-        if (wantDirect) {
-          for (const e of ENCHANTS) {
-            const id = e === 0 ? item.id : `${item.id}@${e}`;
-            flips.push(...this.directFlips(id, q, byId, item.tier));
-            if (byId.has(id)) analysed++;
-          }
-        }
-
-        // --- Flip por encantamiento: comprar base y subir a .L, vender en BM ---
-        if (wantUpgrade) {
-          for (let L = 1; L <= 3; L++) {
-            flips.push(...this.upgradeFlips(item, q, L, byId));
-            analysed++;
-          }
+        for (const e of ENCHANTS) {
+          const id = e === 0 ? item.id : `${item.id}@${e}`;
+          flips.push(...this.directFlips(id, q, byId, item.tier));
+          if (byId.has(id)) analysed++;
         }
       }
     }
@@ -256,7 +221,6 @@ export class MarketFlipsService {
         name: displayName(id),
         tier,
         quality,
-        type: 'direct',
         buyCity: buy.city,
         buyPrice: buy.sell_price_min,
         sellCity: black.city,
@@ -266,74 +230,6 @@ export class MarketFlipsService {
         marginPct: +((profit / buy.sell_price_min) * 100).toFixed(2),
         updatedAt: this.oldest(buy.sell_price_min_date, black.sell_price_min_date),
       });
-    }
-    return out;
-  }
-
-  /**
-   * Flips por encantamiento de un item a nivel `L`: compra la versión .0..(L-1)
-   * en una ciudad normal, sube con materiales hasta .L y vende en el Black
-   * Market (nunca se compra en BM). Devuelve una fila por cada combinación de
-   * nivel de partida + ciudad de compra que dé beneficio.
-   */
-  private upgradeFlips(
-    item: (typeof ITEM_CATALOG)[number],
-    quality: number,
-    L: number,
-    byId: Map<string, PriceEntry[]>,
-  ): MarketFlip[] {
-    const targetId = `${item.id}@${L}`;
-    const sell = (byId.get(targetId) ?? []).find(
-      (e) => e.quality === quality && e.city === 'Black Market',
-    );
-    if (!sell) return [];
-
-    // Precio (compra instantánea) de cada material necesario, por nivel.
-    const matPrice: Record<number, { price: number; date: string }> = {};
-    for (let k = 1; k <= L; k++) {
-      const matId = enchantMaterialId(item.tier, k);
-      const mats = (byId.get(matId) ?? []).filter((e) => e.quality === 1);
-      if (!mats.length) return []; // sin datos de material: no se puede calcular
-      const m = mats.reduce((a, b) => (a.sell_price_min < b.sell_price_min ? a : b));
-      matPrice[k] = { price: m.sell_price_min, date: m.sell_price_min_date };
-    }
-
-    const qty = enchantQty(item.category);
-    const out: MarketFlip[] = [];
-
-    for (let j = 0; j < L; j++) {
-      const startId = j === 0 ? item.id : `${item.id}@${j}`;
-      const buyList = (byId.get(startId) ?? []).filter(
-        (e) => e.quality === quality && e.city !== 'Black Market',
-      );
-      for (const buy of buyList) {
-        let cost = buy.sell_price_min;
-        let date = buy.sell_price_min_date;
-        for (let k = j + 1; k <= L; k++) {
-          cost += matPrice[k].price * qty;
-          date = this.oldest(date, matPrice[k].date);
-        }
-        const profit = this.netSell(sell.sell_price_min) - cost;
-        if (profit <= 0) continue;
-
-        out.push({
-          itemId: targetId,
-          name: displayName(targetId),
-          tier: item.tier,
-          quality,
-          type: 'upgrade',
-          buyCity: buy.city,
-          buyPrice: cost,
-          sellCity: sell.city,
-          sellPrice: sell.sell_price_min,
-          sellBuyMax: sell.buy_price_max,
-          profit,
-          marginPct: +((profit / cost) * 100).toFixed(2),
-          updatedAt: this.oldest(date, sell.sell_price_min_date),
-          upgradeFromEnchant: j,
-          upgradeSteps: L - j,
-        });
-      }
     }
     return out;
   }
@@ -371,7 +267,6 @@ export class MarketFlipsService {
           name: displayName(id),
           tier,
           quality,
-          type: 'direct',
           buyCity: cheapest.city,
           buyPrice,
           sellCity: black.city,

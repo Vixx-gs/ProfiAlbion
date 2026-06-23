@@ -3,7 +3,6 @@ import { DecimalPipe } from '@angular/common';
 import {
   MarketFlipsService,
   MarketFlip,
-  FlipType,
   FlipResult,
   ScanParams,
 } from '../../core/market-flips.service';
@@ -51,8 +50,6 @@ export class Flips {
   ];
 
   // ===== Parámetros de escaneo (panel 1, requieren "Fetch Flips") =====
-  readonly selDirect = signal(true);
-  readonly selUpgrade = signal(true);
   readonly selQualities = signal<Set<number>>(new Set([1, 2, 3, 4, 5]));
   readonly selTiers = signal<Set<number>>(new Set(TIERS));
 
@@ -157,20 +154,16 @@ export class Flips {
   // ===== Escaneo =====
 
   fetchFlips(): void {
-    const scanTypes: FlipType[] = [];
-    if (this.selDirect()) scanTypes.push('direct');
-    if (this.selUpgrade()) scanTypes.push('upgrade');
-
     const qualities = [...this.selQualities()];
     const tiers = [...this.selTiers()];
 
-    if (!scanTypes.length || !qualities.length || !tiers.length) {
-      this.error.set('Selecciona al menos un tipo, calidad y tier.');
+    if (!qualities.length || !tiers.length) {
+      this.error.set('Selecciona al menos una calidad y un tier.');
       this.result.set(null);
       return;
     }
 
-    const params: ScanParams = { scanTypes, qualities, tiers };
+    const params: ScanParams = { qualities, tiers };
     this.loading.set(true);
     this.streaming.set(true);
     this.error.set(null);
@@ -193,10 +186,6 @@ export class Flips {
   }
 
   // ===== Toggles del panel 1 =====
-
-  toggleScan(type: FlipType): void {
-    (type === 'direct' ? this.selDirect : this.selUpgrade).update((v) => !v);
-  }
 
   toggleQuality(q: number): void {
     this.toggleIn(this.selQualities, q);
@@ -249,8 +238,6 @@ export class Flips {
 
   resetFilters(): void {
     // Panel 1 a por defecto.
-    this.selDirect.set(true);
-    this.selUpgrade.set(true);
     this.selQualities.set(new Set([1, 2, 3, 4, 5]));
     this.selTiers.set(new Set(TIERS));
     // Panel 2 a por defecto.
@@ -263,9 +250,9 @@ export class Flips {
   // ===== Acciones de fila (persistentes) =====
 
   rowKey(f: MarketFlip): string {
-    // Incluye buyCity (y el nivel de partida en 'upgrade'): puede haber varias
-    // filas del mismo item+calidad+tipo, una por cada ciudad de compra rentable.
-    return `${f.itemId}|${f.quality}|${f.type}|${f.buyCity}|${f.upgradeFromEnchant ?? ''}`;
+    // Incluye buyCity: puede haber varias filas del mismo item+calidad, una
+    // por cada ciudad de compra rentable.
+    return `${f.itemId}|${f.quality}|${f.buyCity}`;
   }
   isSaved(f: MarketFlip): boolean {
     return this.saved().has(this.rowKey(f));
@@ -299,7 +286,6 @@ export class Flips {
       'item',
       'tier',
       'quality',
-      'type',
       'buyCity',
       'buyPrice',
       'sellCity',
@@ -319,7 +305,6 @@ export class Flips {
           f.name,
           f.tier,
           f.quality,
-          f.type,
           f.buyCity,
           f.buyPrice,
           f.sellCity,
@@ -383,13 +368,6 @@ export class Flips {
   };
   qualityLabel(q: number): string {
     return this.QUALITY_LABELS[q] ?? 'Normal';
-  }
-
-  /** Texto de la ruta de encantamiento, p.ej. ".0 → .3 · 3 pasos". */
-  upgradeLabel(f: MarketFlip): string {
-    const to = (f.upgradeFromEnchant ?? 0) + (f.upgradeSteps ?? 0);
-    const steps = f.upgradeSteps ?? 0;
-    return `.${f.upgradeFromEnchant} → .${to} · ${steps} ${steps === 1 ? 'paso' : 'pasos'}`;
   }
 
   freshness(iso: string): 'fresh' | 'mid' | 'old' {

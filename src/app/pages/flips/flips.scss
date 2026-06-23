@@ -76,7 +76,7 @@
 /* ===== Panel de escaneo ===== */
 .scan__grid {
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: auto 1fr auto;
   gap: 26px;
 }
 .grp__title {
@@ -315,19 +315,6 @@
 .item-quality.q3 { color: #38bdf8; }
 .item-quality.q4 { color: #c084fc; }
 .item-quality.q5 { color: var(--gold-bright); }
-.item-up { color: var(--text-dim); }
-
-.badge {
-  display: inline-block;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 800;
-  border-radius: 7px;
-  color: #cdd6ea;
-  background: var(--bg-hover);
-  border: 1px solid var(--border-strong);
-}
-.badge--up { color: #cfe0ff; background: rgba(79, 124, 255, 0.16); border-color: rgba(79, 124, 255, 0.5); }
 
 .cell-dim { color: var(--text-dim); font-size: 13px; white-space: nowrap; }
 .freshdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; vertical-align: middle; }

@@ -1,17 +1,6 @@
 /** Catálogo de items. Nombres ES oficiales (ao-bin-dumps). */
 import NAMES_ES from './item-names.es.json';
 
-/** Categoría de equipo (determina los recursos de crafteo y el coste de encantar). */
-export type ItemCategory =
-  | 'weapon-1h'
-  | 'weapon-2h'
-  | 'armor'
-  | 'head'
-  | 'shoes'
-  | 'offhand'
-  | 'bag'
-  | 'cape';
-
 export interface CatalogItem {
   /** Id base sin encantamiento, p.ej. "T6_2H_HAMMER". */
   id: string;
@@ -21,8 +10,6 @@ export interface CatalogItem {
   tier: number;
   /** Clave del tipo de item, común a todos los tiers (p.ej. "2H_HAMMER"). */
   typeKey: string;
-  /** Categoría de equipo. */
-  category: ItemCategory;
 }
 
 const NAME_MAP = NAMES_ES as Record<string, string>;
@@ -33,17 +20,6 @@ export const ENCHANTS = [0, 1, 2, 3];
 /** Tiers cubiertos. */
 export const TIERS = [4, 5, 6, 7, 8];
 
-function categoryOf(typeKey: string): ItemCategory {
-  if (typeKey.startsWith('2H_')) return 'weapon-2h';
-  if (typeKey.startsWith('MAIN_')) return 'weapon-1h';
-  if (typeKey.startsWith('HEAD_')) return 'head';
-  if (typeKey.startsWith('SHOES_')) return 'shoes';
-  if (typeKey.startsWith('OFF_')) return 'offhand';
-  if (typeKey === 'BAG') return 'bag';
-  if (typeKey === 'CAPE') return 'cape';
-  return 'armor';
-}
-
 function buildAll(): CatalogItem[] {
   const out: CatalogItem[] = [];
   for (const id of Object.keys(NAME_MAP)) {
@@ -51,7 +27,7 @@ function buildAll(): CatalogItem[] {
     if (!m) continue;
     const tier = Number(m[1]);
     const typeKey = m[2];
-    out.push({ id, name: NAME_MAP[id], tier, typeKey, category: categoryOf(typeKey) });
+    out.push({ id, name: NAME_MAP[id], tier, typeKey });
   }
   return out;
 }
