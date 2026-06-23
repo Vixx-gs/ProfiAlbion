@@ -37,10 +37,6 @@ export interface MarketFlip {
 /** Parámetros del escaneo (panel "Fetch Flips"). */
 export interface ScanParams {
   scanTypes: FlipType[];
-  /** Ciudades donde se permite comprar (origen del flip). */
-  buyLocations: string[];
-  /** Ciudades donde se permite vender (destino del flip). */
-  sellLocations: string[];
   qualities: number[];
   tiers: number[];
 }
@@ -89,7 +85,7 @@ export class MarketFlipsService {
   getFlips(params: ScanParams): Observable<FlipResult> {
     const bases = ITEM_CATALOG.filter((i) => params.tiers.includes(i.tier));
     const itemIds = this.expandItemIds(bases.map((i) => i.id));
-    const locations = [...new Set([...params.buyLocations, ...params.sellLocations])];
+    const locations = AlbionDataService.CITIES;
 
     // Materiales de encantamiento (solo si se va a calcular 'upgrade').
     const matIds = params.scanTypes.includes('upgrade')
@@ -195,10 +191,7 @@ export class MarketFlipsService {
 
   /** Construye el resultado completo (directos + encantamiento). */
   private buildResult(entries: PriceEntry[], params: ScanParams): FlipResult {
-    const locations = [...new Set([...params.buyLocations, ...params.sellLocations])];
-    const byId = this.indexFresh(entries, locations);
-    const buyLocations = new Set(params.buyLocations);
-    const sellLocations = new Set(params.sellLocations);
+    const byId = this.indexFresh(entries, AlbionDataService.CITIES);
     const flips: MarketFlip[] = [];
     let analysed = 0;
 
@@ -210,21 +203,19 @@ export class MarketFlipsService {
       if (!params.tiers.includes(item.tier)) continue;
 
       for (const q of qualities) {
-        // --- Flip directo: comprar barato y vender caro entre ubicaciones ---
+        // --- Flip directo: comprar en cualquier ciudad y vender en Black Market ---
         if (wantDirect) {
           for (const e of ENCHANTS) {
             const id = e === 0 ? item.id : `${item.id}@${e}`;
-            const direct = this.directFlip(id, q, byId, item.tier, buyLocations, sellLocations);
-            if (direct) flips.push(direct);
+            flips.push(...this.directFlips(id, q, byId, item.tier));
             if (byId.has(id)) analysed++;
           }
         }
 
-        // --- Flip por encantamiento: comprar base y subir a .L ---
+        // --- Flip por encantamiento: comprar base y subir a .L, vender en BM ---
         if (wantUpgrade) {
           for (let L = 1; L <= 3; L++) {
-            const up = this.upgradeFlip(item, q, L, byId, buyLocations, sellLocations);
-            if (up) flips.push(up);
+            flips.push(...this.upgradeFlips(item, q, L, byId));
             analysed++;
           }
         }
@@ -239,121 +230,112 @@ export class MarketFlipsService {
     };
   }
 
-  /** Mejor flip directo de un item+calidad concretos entre las ubicaciones. */
-  private directFlip(
+  /**
+   * Flips directos de un item+calidad concretos: comprar en una ciudad normal
+   * y vender en el Black Market (nunca al revés). Devuelve una fila por CADA
+   * ciudad de compra que dé beneficio, no solo la más barata.
+   */
+  private directFlips(
     id: string,
     quality: number,
     byId: Map<string, PriceEntry[]>,
     tier: number,
-    buyLocations: Set<string>,
-    sellLocations: Set<string>,
-  ): MarketFlip | null {
+  ): MarketFlip[] {
     const list = (byId.get(id) ?? []).filter((e) => e.quality === quality);
-    if (list.length < 2) return null;
+    const black = list.find((e) => e.city === 'Black Market');
+    if (!black) return [];
 
-    const buyCandidates = list.filter((e) => buyLocations.has(e.city));
-    const sellCandidates = list.filter((e) => sellLocations.has(e.city));
-    if (!buyCandidates.length || !sellCandidates.length) return null;
+    const out: MarketFlip[] = [];
+    for (const buy of list) {
+      if (buy.city === 'Black Market') continue;
+      const profit = this.netSell(black.sell_price_min) - buy.sell_price_min;
+      if (profit <= 0) continue;
 
-    const cheapest = buyCandidates.reduce((a, b) => (a.sell_price_min < b.sell_price_min ? a : b));
-    const dearest = sellCandidates.reduce((a, b) => (a.sell_price_min > b.sell_price_min ? a : b));
-    if (cheapest.city === dearest.city) return null;
-
-    const buyPrice = cheapest.sell_price_min;
-    const profit = this.netSell(dearest.sell_price_min) - buyPrice;
-    if (profit <= 0) return null;
-
-    return {
-      itemId: id,
-      name: displayName(id),
-      tier,
-      quality,
-      type: 'direct',
-      buyCity: cheapest.city,
-      buyPrice,
-      sellCity: dearest.city,
-      sellPrice: dearest.sell_price_min,
-      sellBuyMax: dearest.buy_price_max,
-      profit,
-      marginPct: +((profit / buyPrice) * 100).toFixed(2),
-      updatedAt: this.oldest(cheapest.sell_price_min_date, dearest.sell_price_min_date),
-    };
+      out.push({
+        itemId: id,
+        name: displayName(id),
+        tier,
+        quality,
+        type: 'direct',
+        buyCity: buy.city,
+        buyPrice: buy.sell_price_min,
+        sellCity: black.city,
+        sellPrice: black.sell_price_min,
+        sellBuyMax: black.buy_price_max,
+        profit,
+        marginPct: +((profit / buy.sell_price_min) * 100).toFixed(2),
+        updatedAt: this.oldest(buy.sell_price_min_date, black.sell_price_min_date),
+      });
+    }
+    return out;
   }
 
   /**
-   * Mejor flip por encantamiento de un item a nivel `L`: compra la versión más
-   * barata entre .0 y .(L-1), suma el coste de los materiales para llegar a .L
-   * y vende al precio más alto disponible.
+   * Flips por encantamiento de un item a nivel `L`: compra la versión .0..(L-1)
+   * en una ciudad normal, sube con materiales hasta .L y vende en el Black
+   * Market (nunca se compra en BM). Devuelve una fila por cada combinación de
+   * nivel de partida + ciudad de compra que dé beneficio.
    */
-  private upgradeFlip(
+  private upgradeFlips(
     item: (typeof ITEM_CATALOG)[number],
     quality: number,
     L: number,
     byId: Map<string, PriceEntry[]>,
-    buyLocations: Set<string>,
-    sellLocations: Set<string>,
-  ): MarketFlip | null {
+  ): MarketFlip[] {
     const targetId = `${item.id}@${L}`;
-    const sellList = (byId.get(targetId) ?? []).filter(
-      (e) => e.quality === quality && sellLocations.has(e.city),
+    const sell = (byId.get(targetId) ?? []).find(
+      (e) => e.quality === quality && e.city === 'Black Market',
     );
-    if (!sellList.length) return null;
-    const sell = sellList.reduce((a, b) => (a.sell_price_min > b.sell_price_min ? a : b));
+    if (!sell) return [];
 
     // Precio (compra instantánea) de cada material necesario, por nivel.
     const matPrice: Record<number, { price: number; date: string }> = {};
     for (let k = 1; k <= L; k++) {
       const matId = enchantMaterialId(item.tier, k);
       const mats = (byId.get(matId) ?? []).filter((e) => e.quality === 1);
-      if (!mats.length) return null; // sin datos de material: no se puede calcular
+      if (!mats.length) return []; // sin datos de material: no se puede calcular
       const m = mats.reduce((a, b) => (a.sell_price_min < b.sell_price_min ? a : b));
       matPrice[k] = { price: m.sell_price_min, date: m.sell_price_min_date };
     }
 
     const qty = enchantQty(item.category);
+    const out: MarketFlip[] = [];
 
-    // Probar cada nivel de partida j (0..L-1) y quedarnos con el más barato.
-    let best: { cost: number; buyCity: string; from: number; date: string } | null = null;
     for (let j = 0; j < L; j++) {
       const startId = j === 0 ? item.id : `${item.id}@${j}`;
       const buyList = (byId.get(startId) ?? []).filter(
-        (e) => e.quality === quality && buyLocations.has(e.city),
+        (e) => e.quality === quality && e.city !== 'Black Market',
       );
-      if (!buyList.length) continue;
-      const buy = buyList.reduce((a, b) => (a.sell_price_min < b.sell_price_min ? a : b));
+      for (const buy of buyList) {
+        let cost = buy.sell_price_min;
+        let date = buy.sell_price_min_date;
+        for (let k = j + 1; k <= L; k++) {
+          cost += matPrice[k].price * qty;
+          date = this.oldest(date, matPrice[k].date);
+        }
+        const profit = this.netSell(sell.sell_price_min) - cost;
+        if (profit <= 0) continue;
 
-      let cost = buy.sell_price_min;
-      let date = buy.sell_price_min_date;
-      for (let k = j + 1; k <= L; k++) {
-        cost += matPrice[k].price * qty;
-        date = this.oldest(date, matPrice[k].date);
-      }
-      if (!best || cost < best.cost) {
-        best = { cost, buyCity: buy.city, from: j, date };
+        out.push({
+          itemId: targetId,
+          name: displayName(targetId),
+          tier: item.tier,
+          quality,
+          type: 'upgrade',
+          buyCity: buy.city,
+          buyPrice: cost,
+          sellCity: sell.city,
+          sellPrice: sell.sell_price_min,
+          sellBuyMax: sell.buy_price_max,
+          profit,
+          marginPct: +((profit / cost) * 100).toFixed(2),
+          updatedAt: this.oldest(date, sell.sell_price_min_date),
+          upgradeFromEnchant: j,
+          upgradeSteps: L - j,
+        });
       }
     }
-    if (!best) return null;
-
-    const profit = this.netSell(sell.sell_price_min) - best.cost;
-    if (profit <= 0) return null;
-
-    return {
-      itemId: targetId,
-      name: displayName(targetId),
-      tier: item.tier,
-      quality,
-      type: 'upgrade',
-      buyCity: best.buyCity,
-      buyPrice: best.cost,
-      sellCity: sell.city,
-      sellPrice: sell.sell_price_min,
-      sellBuyMax: sell.buy_price_max,
-      profit,
-      marginPct: +((profit / best.cost) * 100).toFixed(2),
-      updatedAt: this.oldest(best.date, sell.sell_price_min_date),
-      upgradeFromEnchant: best.from,
-      upgradeSteps: L - best.from,
-    };
+    return out;
   }
 
   // ===== Lógica heredada de la home (vender solo en Black Market) =====

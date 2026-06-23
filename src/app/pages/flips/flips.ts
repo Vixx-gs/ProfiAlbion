@@ -7,7 +7,6 @@ import {
   FlipResult,
   ScanParams,
 } from '../../core/market-flips.service';
-import { AlbionDataService } from '../../core/albion-data.service';
 import { ALL_ITEMS, ENCHANTS, TIERS, displayName } from '../../core/items.catalog';
 import { MarketHistory } from './market-history/market-history';
 
@@ -42,7 +41,6 @@ const CITY_COLORS: Record<string, string> = {
 export class Flips {
   private readonly service = inject(MarketFlipsService);
 
-  readonly cities = AlbionDataService.CITIES;
   readonly tiers = TIERS;
   readonly qualities = [
     { id: 1, label: 'Normal' },
@@ -55,28 +53,8 @@ export class Flips {
   // ===== Parámetros de escaneo (panel 1, requieren "Fetch Flips") =====
   readonly selDirect = signal(true);
   readonly selUpgrade = signal(true);
-  readonly selBuyLocations = signal<Set<string>>(new Set(this.cities));
-  readonly selSellLocations = signal<Set<string>>(new Set(this.cities));
   readonly selQualities = signal<Set<number>>(new Set([1, 2, 3, 4, 5]));
   readonly selTiers = signal<Set<number>>(new Set(TIERS));
-
-  /** ¿Abierto el desplegable de ciudades de compra/venta? */
-  readonly buyLocOpen = signal(false);
-  readonly sellLocOpen = signal(false);
-  readonly allBuySelected = computed(() => this.selBuyLocations().size === this.cities.length);
-  readonly allSellSelected = computed(() => this.selSellLocations().size === this.cities.length);
-  buyLocationsLabel(): string {
-    const n = this.selBuyLocations().size;
-    if (n === this.cities.length) return 'Todas';
-    if (n === 0) return 'Ninguna';
-    return `${n} ciudades`;
-  }
-  sellLocationsLabel(): string {
-    const n = this.selSellLocations().size;
-    if (n === this.cities.length) return 'Todas';
-    if (n === 0) return 'Ninguna';
-    return `${n} ciudades`;
-  }
 
   // ===== Resultado =====
   readonly result = signal<FlipResult | null>(null);
@@ -183,24 +161,16 @@ export class Flips {
     if (this.selDirect()) scanTypes.push('direct');
     if (this.selUpgrade()) scanTypes.push('upgrade');
 
-    const buyLocations = [...this.selBuyLocations()];
-    const sellLocations = [...this.selSellLocations()];
     const qualities = [...this.selQualities()];
     const tiers = [...this.selTiers()];
 
-    if (
-      !scanTypes.length ||
-      !buyLocations.length ||
-      !sellLocations.length ||
-      !qualities.length ||
-      !tiers.length
-    ) {
-      this.error.set('Selecciona al menos un tipo, ciudad de compra/venta, calidad y tier.');
+    if (!scanTypes.length || !qualities.length || !tiers.length) {
+      this.error.set('Selecciona al menos un tipo, calidad y tier.');
       this.result.set(null);
       return;
     }
 
-    const params: ScanParams = { scanTypes, buyLocations, sellLocations, qualities, tiers };
+    const params: ScanParams = { scanTypes, qualities, tiers };
     this.loading.set(true);
     this.streaming.set(true);
     this.error.set(null);
@@ -226,29 +196,6 @@ export class Flips {
 
   toggleScan(type: FlipType): void {
     (type === 'direct' ? this.selDirect : this.selUpgrade).update((v) => !v);
-  }
-
-  toggleBuyLocation(city: string): void {
-    this.toggleIn(this.selBuyLocations, city);
-  }
-  toggleSellLocation(city: string): void {
-    this.toggleIn(this.selSellLocations, city);
-  }
-  toggleAllBuyLocations(): void {
-    this.selBuyLocations.set(this.allBuySelected() ? new Set() : new Set(this.cities));
-  }
-  toggleAllSellLocations(): void {
-    this.selSellLocations.set(this.allSellSelected() ? new Set() : new Set(this.cities));
-  }
-  toggleBuyLocOpen(ev: Event): void {
-    ev.stopPropagation();
-    this.buyLocOpen.update((v) => !v);
-    this.sellLocOpen.set(false);
-  }
-  toggleSellLocOpen(ev: Event): void {
-    ev.stopPropagation();
-    this.sellLocOpen.update((v) => !v);
-    this.buyLocOpen.set(false);
   }
 
   toggleQuality(q: number): void {
@@ -304,8 +251,6 @@ export class Flips {
     // Panel 1 a por defecto.
     this.selDirect.set(true);
     this.selUpgrade.set(true);
-    this.selBuyLocations.set(new Set(this.cities));
-    this.selSellLocations.set(new Set(this.cities));
     this.selQualities.set(new Set([1, 2, 3, 4, 5]));
     this.selTiers.set(new Set(TIERS));
     // Panel 2 a por defecto.
@@ -408,8 +353,6 @@ export class Flips {
   closePopover(): void {
     this.openPopover.set(null);
     this.searchOpen.set(false);
-    this.buyLocOpen.set(false);
-    this.sellLocOpen.set(false);
   }
 
   // ===== Atajo de teclado: "A" = Fetch Flips =====

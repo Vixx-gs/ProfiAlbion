@@ -2,8 +2,9 @@
   <header class="fp__head">
     <h1 class="fp__title">Calculadora de Flipping de Mercado</h1>
     <p class="fp__sub">
-      Compra barato y vende caro entre ciudades y el Black Market. Incluye rutas de
-      <strong>encantamiento</strong> (comprar base y subir con runas/almas/reliquias).
+      Compra barato en cualquier ciudad y vende siempre en el <strong>Black Market</strong> (nunca se
+      compra allí). Incluye rutas de <strong>encantamiento</strong> (comprar base y subir con
+      runas/almas/reliquias).
     </p>
   </header>
 
@@ -25,56 +26,13 @@
       </div>
 
       <div class="grp">
-        <span class="grp__title">Comprar en</span>
-        <div class="loc" (click)="$event.stopPropagation()">
-          <button class="sw" [class.sw--on]="allBuySelected()" type="button" (click)="toggleAllBuyLocations()">
-            <span class="sw__track"><span class="sw__knob"></span></span>
-            <span class="sw__label">Todas</span>
-          </button>
-          <button class="loc__btn" type="button" (click)="toggleBuyLocOpen($event)">
-            <span>{{ buyLocationsLabel() }}</span>
-            <svg class="loc__caret" viewBox="0 0 12 12" width="10" height="10">
-              <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
-            </svg>
-          </button>
-          @if (buyLocOpen()) {
-            <div class="loc__list">
-              @for (c of cities; track c) {
-                <button class="loc__opt" type="button" (click)="toggleBuyLocation(c)">
-                  <span class="loc__check" [class.loc__check--on]="selBuyLocations().has(c)"></span>
-                  <span class="sw__dot" [style.background]="cityColor(c)"></span>
-                  <span>{{ c }}</span>
-                </button>
-              }
-            </div>
-          }
-        </div>
-      </div>
-
-      <div class="grp">
-        <span class="grp__title">Vender en</span>
-        <div class="loc" (click)="$event.stopPropagation()">
-          <button class="sw" [class.sw--on]="allSellSelected()" type="button" (click)="toggleAllSellLocations()">
-            <span class="sw__track"><span class="sw__knob"></span></span>
-            <span class="sw__label">Todas</span>
-          </button>
-          <button class="loc__btn" type="button" (click)="toggleSellLocOpen($event)">
-            <span>{{ sellLocationsLabel() }}</span>
-            <svg class="loc__caret" viewBox="0 0 12 12" width="10" height="10">
-              <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
-            </svg>
-          </button>
-          @if (sellLocOpen()) {
-            <div class="loc__list">
-              @for (c of cities; track c) {
-                <button class="loc__opt" type="button" (click)="toggleSellLocation(c)">
-                  <span class="loc__check" [class.loc__check--on]="selSellLocations().has(c)"></span>
-                  <span class="sw__dot" [style.background]="cityColor(c)"></span>
-                  <span>{{ c }}</span>
-                </button>
-              }
-            </div>
-          }
+        <span class="grp__title">Ruta</span>
+        <div class="route">
+          <span class="route__pill">Cualquier ciudad</span>
+          <svg class="route__arrow" viewBox="0 0 16 10" width="16" height="10">
+            <path d="M1 5h13M9 1l5 4-5 4" fill="none" stroke="currentColor" stroke-width="1.6" />
+          </svg>
+          <span class="route__pill route__pill--bm">Black Market</span>
         </div>
       </div>
 
