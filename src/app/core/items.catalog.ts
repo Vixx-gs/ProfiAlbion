@@ -33,32 +33,6 @@ export const ENCHANTS = [0, 1, 2, 3];
 /** Tiers cubiertos. */
 export const TIERS = [4, 5, 6, 7, 8];
 
-/**
- * Tipos incluidos en el escaneo masivo "Top" (subconjunto curado de equipo de
- * alto valor) para que la carga sea rápida. El resto de items del juego siguen
- * disponibles en el buscador (ALL_ITEMS) mediante consulta bajo demanda.
- */
-const CURATED_TYPES = new Set([
-  '2H_HAMMER',
-  '2H_AXE',
-  '2H_ARCANESTAFF',
-  'MAIN_SWORD',
-  'MAIN_FIRESTAFF',
-  '2H_CLAYMORE',
-  '2H_BOW',
-  '2H_CROSSBOW',
-  'MAIN_DAGGER',
-  '2H_NATURESTAFF',
-  '2H_HOLYSTAFF',
-  'ARMOR_CLOTH_SET1',
-  'ARMOR_LEATHER_SET1',
-  'ARMOR_PLATE_SET1',
-  'HEAD_PLATE_SET1',
-  'SHOES_PLATE_SET1',
-  'BAG',
-  'CAPE',
-]);
-
 function categoryOf(typeKey: string): ItemCategory {
   if (typeKey.startsWith('2H_')) return 'weapon-2h';
   if (typeKey.startsWith('MAIN_')) return 'weapon-1h';
@@ -82,11 +56,11 @@ function buildAll(): CatalogItem[] {
   return out;
 }
 
-/** Todos los items del catálogo (para el buscador). */
+/** Todos los items del catálogo: armas y armaduras de todo tipo y tier (sin monturas ni consumibles). */
 export const ALL_ITEMS: CatalogItem[] = buildAll();
 
-/** Subconjunto curado que se escanea en la tabla "Top". */
-export const ITEM_CATALOG: CatalogItem[] = ALL_ITEMS.filter((i) => CURATED_TYPES.has(i.typeKey));
+/** Catálogo que se escanea ("Top" y buscador): el mismo conjunto completo. */
+export const ITEM_CATALOG: CatalogItem[] = ALL_ITEMS;
 
 /** Metadatos de un item base por su id (cualquiera del catálogo completo). */
 export const ITEM_BY_ID = new Map<string, CatalogItem>(ALL_ITEMS.map((i) => [i.id, i]));

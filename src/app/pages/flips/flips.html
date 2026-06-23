@@ -25,14 +25,55 @@
       </div>
 
       <div class="grp">
-        <span class="grp__title">Locations</span>
-        <div class="grp__opts grp__opts--wrap">
-          @for (c of cities; track c) {
-            <button class="sw" [class.sw--on]="selLocations().has(c)" type="button" (click)="toggleLocation(c)">
-              <span class="sw__track"><span class="sw__knob"></span></span>
-              <span class="sw__dot" [style.background]="cityColor(c)"></span>
-              <span class="sw__label">{{ c }}</span>
-            </button>
+        <span class="grp__title">Comprar en</span>
+        <div class="loc" (click)="$event.stopPropagation()">
+          <button class="sw" [class.sw--on]="allBuySelected()" type="button" (click)="toggleAllBuyLocations()">
+            <span class="sw__track"><span class="sw__knob"></span></span>
+            <span class="sw__label">Todas</span>
+          </button>
+          <button class="loc__btn" type="button" (click)="toggleBuyLocOpen($event)">
+            <span>{{ buyLocationsLabel() }}</span>
+            <svg class="loc__caret" viewBox="0 0 12 12" width="10" height="10">
+              <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+          </button>
+          @if (buyLocOpen()) {
+            <div class="loc__list">
+              @for (c of cities; track c) {
+                <button class="loc__opt" type="button" (click)="toggleBuyLocation(c)">
+                  <span class="loc__check" [class.loc__check--on]="selBuyLocations().has(c)"></span>
+                  <span class="sw__dot" [style.background]="cityColor(c)"></span>
+                  <span>{{ c }}</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="grp">
+        <span class="grp__title">Vender en</span>
+        <div class="loc" (click)="$event.stopPropagation()">
+          <button class="sw" [class.sw--on]="allSellSelected()" type="button" (click)="toggleAllSellLocations()">
+            <span class="sw__track"><span class="sw__knob"></span></span>
+            <span class="sw__label">Todas</span>
+          </button>
+          <button class="loc__btn" type="button" (click)="toggleSellLocOpen($event)">
+            <span>{{ sellLocationsLabel() }}</span>
+            <svg class="loc__caret" viewBox="0 0 12 12" width="10" height="10">
+              <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+          </button>
+          @if (sellLocOpen()) {
+            <div class="loc__list">
+              @for (c of cities; track c) {
+                <button class="loc__opt" type="button" (click)="toggleSellLocation(c)">
+                  <span class="loc__check" [class.loc__check--on]="selSellLocations().has(c)"></span>
+                  <span class="sw__dot" [style.background]="cityColor(c)"></span>
+                  <span>{{ c }}</span>
+                </button>
+              }
+            </div>
           }
         </div>
       </div>
@@ -142,9 +183,6 @@
             @if (streaming()) {
               <span class="results__live">· escaneando más…</span>
             }
-            @if (lookupLoading()) {
-              <span class="results__live">· buscando ítem…</span>
-            }
           </p>
         }
       </div>
@@ -162,8 +200,8 @@
     @if (error()) {
       <div class="results__state results__state--error">{{ error() }}</div>
     } @else if (displayed().length === 0) {
-      @if (loading() || lookupLoading()) {
-        <div class="results__state">{{ lookupLoading() ? 'Buscando datos del ítem…' : 'Escaneando precios…' }}</div>
+      @if (loading()) {
+        <div class="results__state">Escaneando precios…</div>
       } @else if (search()) {
         <div class="results__state">Ningún flip rentable para este ítem/filtro ahora mismo.</div>
       } @else {

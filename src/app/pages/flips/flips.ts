@@ -8,15 +8,7 @@ import {
   ScanParams,
 } from '../../core/market-flips.service';
 import { AlbionDataService } from '../../core/albion-data.service';
-import {
-  ITEM_CATALOG,
-  ALL_ITEMS,
-  ITEM_BY_ID,
-  ENCHANTS,
-  TIERS,
-  baseOf,
-  displayName,
-} from '../../core/items.catalog';
+import { ALL_ITEMS, ENCHANTS, TIERS, displayName } from '../../core/items.catalog';
 import { MarketHistory } from './market-history/market-history';
 
 type SortKey = 'update' | 'profit' | 'margin';
@@ -63,9 +55,28 @@ export class Flips {
   // ===== Parámetros de escaneo (panel 1, requieren "Fetch Flips") =====
   readonly selDirect = signal(true);
   readonly selUpgrade = signal(true);
-  readonly selLocations = signal<Set<string>>(new Set(this.cities));
+  readonly selBuyLocations = signal<Set<string>>(new Set(this.cities));
+  readonly selSellLocations = signal<Set<string>>(new Set(this.cities));
   readonly selQualities = signal<Set<number>>(new Set([1, 2, 3, 4, 5]));
   readonly selTiers = signal<Set<number>>(new Set(TIERS));
+
+  /** ¿Abierto el desplegable de ciudades de compra/venta? */
+  readonly buyLocOpen = signal(false);
+  readonly sellLocOpen = signal(false);
+  readonly allBuySelected = computed(() => this.selBuyLocations().size === this.cities.length);
+  readonly allSellSelected = computed(() => this.selSellLocations().size === this.cities.length);
+  buyLocationsLabel(): string {
+    const n = this.selBuyLocations().size;
+    if (n === this.cities.length) return 'Todas';
+    if (n === 0) return 'Ninguna';
+    return `${n} ciudades`;
+  }
+  sellLocationsLabel(): string {
+    const n = this.selSellLocations().size;
+    if (n === this.cities.length) return 'Todas';
+    if (n === 0) return 'Ninguna';
+    return `${n} ciudades`;
+  }
 
   // ===== Resultado =====
   readonly result = signal<FlipResult | null>(null);
@@ -86,16 +97,6 @@ export class Flips {
       return { id, name: displayName(id) };
     }),
   ).sort((a, b) => a.name.localeCompare(b.name, 'es'));
-
-  /** Ids base que ya cubre el escaneo "Top" (no requieren consulta extra). */
-  private readonly curatedIds = new Set(ITEM_CATALOG.map((i) => i.id));
-  /** Ids base ya consultados bajo demanda (para no repetir). */
-  private readonly lookedUp = new Set<string>();
-  /** Flips traídos bajo demanda (items fuera del escaneo Top). */
-  readonly extraFlips = signal<MarketFlip[]>([]);
-  /** Consulta de un item en curso. */
-  readonly lookupLoading = signal(false);
-  private lookupSub?: import('rxjs').Subscription;
 
   /** ¿Está abierto el desplegable del buscador? */
   readonly searchOpen = signal(false);
@@ -134,14 +135,7 @@ export class Flips {
 
   /** Flips tras filtros de cliente + orden. */
   readonly displayed = computed<MarketFlip[]>(() => {
-    const base = this.result()?.flips ?? [];
-    const extra = this.extraFlips();
-    // Combina escaneo Top + items consultados bajo demanda (sin duplicar).
-    let source = base;
-    if (extra.length) {
-      const seen = new Set(base.map((f) => this.rowKey(f)));
-      source = [...base, ...extra.filter((f) => !seen.has(this.rowKey(f)))];
-    }
+    const source = this.result()?.flips ?? [];
 
     const q = this.search().trim().toLowerCase();
     const mp = this.minProfit();
@@ -189,17 +183,24 @@ export class Flips {
     if (this.selDirect()) scanTypes.push('direct');
     if (this.selUpgrade()) scanTypes.push('upgrade');
 
-    const locations = [...this.selLocations()];
+    const buyLocations = [...this.selBuyLocations()];
+    const sellLocations = [...this.selSellLocations()];
     const qualities = [...this.selQualities()];
     const tiers = [...this.selTiers()];
 
-    if (!scanTypes.length || !locations.length || !qualities.length || !tiers.length) {
-      this.error.set('Selecciona al menos un tipo, ubicación, calidad y tier.');
+    if (
+      !scanTypes.length ||
+      !buyLocations.length ||
+      !sellLocations.length ||
+      !qualities.length ||
+      !tiers.length
+    ) {
+      this.error.set('Selecciona al menos un tipo, ciudad de compra/venta, calidad y tier.');
       this.result.set(null);
       return;
     }
 
-    const params: ScanParams = { scanTypes, locations, qualities, tiers };
+    const params: ScanParams = { scanTypes, buyLocations, sellLocations, qualities, tiers };
     this.loading.set(true);
     this.streaming.set(true);
     this.error.set(null);
@@ -226,9 +227,30 @@ export class Flips {
   toggleScan(type: FlipType): void {
     (type === 'direct' ? this.selDirect : this.selUpgrade).update((v) => !v);
   }
-  toggleLocation(city: string): void {
-    this.toggleIn(this.selLocations, city);
+
+  toggleBuyLocation(city: string): void {
+    this.toggleIn(this.selBuyLocations, city);
   }
+  toggleSellLocation(city: string): void {
+    this.toggleIn(this.selSellLocations, city);
+  }
+  toggleAllBuyLocations(): void {
+    this.selBuyLocations.set(this.allBuySelected() ? new Set() : new Set(this.cities));
+  }
+  toggleAllSellLocations(): void {
+    this.selSellLocations.set(this.allSellSelected() ? new Set() : new Set(this.cities));
+  }
+  toggleBuyLocOpen(ev: Event): void {
+    ev.stopPropagation();
+    this.buyLocOpen.update((v) => !v);
+    this.sellLocOpen.set(false);
+  }
+  toggleSellLocOpen(ev: Event): void {
+    ev.stopPropagation();
+    this.sellLocOpen.update((v) => !v);
+    this.buyLocOpen.set(false);
+  }
+
   toggleQuality(q: number): void {
     this.toggleIn(this.selQualities, q);
   }
@@ -253,33 +275,11 @@ export class Flips {
   openSearch(): void {
     this.searchOpen.set(true);
   }
-  /** Selecciona un item del desplegable: filtra por su nombre y, si no está en
-   * el escaneo Top, lo consulta bajo demanda. */
+  /** Selecciona un item del desplegable: filtra por su nombre. */
   selectItem(opt: ItemOption): void {
     this.search.set(opt.name);
     this.searchOpen.set(false);
     this.resetPage();
-    this.ensureItem(baseOf(opt.id));
-  }
-
-  /** Trae los flips de un item bajo demanda si aún no se conocen. */
-  private ensureItem(baseId: string): void {
-    if (this.curatedIds.has(baseId) || this.lookedUp.has(baseId)) return;
-    const item = ITEM_BY_ID.get(baseId);
-    if (!item) return;
-    this.lookedUp.add(baseId);
-    this.lookupLoading.set(true);
-    this.lookupSub?.unsubscribe();
-    this.lookupSub = this.service.lookupItem(item).subscribe({
-      next: (flips) => {
-        this.extraFlips.update((cur) => [...cur, ...flips]);
-        this.lookupLoading.set(false);
-      },
-      error: () => {
-        this.lookedUp.delete(baseId);
-        this.lookupLoading.set(false);
-      },
-    });
   }
   /** Limpia el buscador. */
   clearSearch(): void {
@@ -304,7 +304,8 @@ export class Flips {
     // Panel 1 a por defecto.
     this.selDirect.set(true);
     this.selUpgrade.set(true);
-    this.selLocations.set(new Set(this.cities));
+    this.selBuyLocations.set(new Set(this.cities));
+    this.selSellLocations.set(new Set(this.cities));
     this.selQualities.set(new Set([1, 2, 3, 4, 5]));
     this.selTiers.set(new Set(TIERS));
     // Panel 2 a por defecto.
@@ -407,6 +408,8 @@ export class Flips {
   closePopover(): void {
     this.openPopover.set(null);
     this.searchOpen.set(false);
+    this.buyLocOpen.set(false);
+    this.sellLocOpen.set(false);
   }
 
   // ===== Atajo de teclado: "A" = Fetch Flips =====

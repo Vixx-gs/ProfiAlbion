@@ -1,13 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, forkJoin, from, map, mergeMap, of, scan, timeout, catchError } from 'rxjs';
+import { Observable, from, map, mergeMap, of, scan, timeout, catchError } from 'rxjs';
 import { AlbionDataService, PriceEntry } from './albion-data.service';
-import {
-  ITEM_CATALOG,
-  ITEM_BY_ID,
-  CatalogItem,
-  ENCHANTS,
-  displayName,
-} from './items.catalog';
+import { ITEM_CATALOG, ITEM_BY_ID, ENCHANTS, displayName } from './items.catalog';
 import { enchantMaterialId, enchantMaterialIds, enchantQty } from './enchant';
 
 /** Tipo de flip: directo (mismo item) o por encantamiento (comprar base y subir). */
@@ -43,7 +37,10 @@ export interface MarketFlip {
 /** Parámetros del escaneo (panel "Fetch Flips"). */
 export interface ScanParams {
   scanTypes: FlipType[];
-  locations: string[];
+  /** Ciudades donde se permite comprar (origen del flip). */
+  buyLocations: string[];
+  /** Ciudades donde se permite vender (destino del flip). */
+  sellLocations: string[];
   qualities: number[];
   tiers: number[];
 }
@@ -92,6 +89,7 @@ export class MarketFlipsService {
   getFlips(params: ScanParams): Observable<FlipResult> {
     const bases = ITEM_CATALOG.filter((i) => params.tiers.includes(i.tier));
     const itemIds = this.expandItemIds(bases.map((i) => i.id));
+    const locations = [...new Set([...params.buyLocations, ...params.sellLocations])];
 
     // Materiales de encantamiento (solo si se va a calcular 'upgrade').
     const matIds = params.scanTypes.includes('upgrade')
@@ -115,7 +113,7 @@ export class MarketFlipsService {
     return from(reqs).pipe(
       mergeMap(
         (req) =>
-          this.api.getPrices(req.ids, params.locations, req.qualities).pipe(
+          this.api.getPrices(req.ids, locations, req.qualities).pipe(
             timeout(this.REQUEST_TIMEOUT),
             catchError(() => of([] as PriceEntry[])),
           ),
@@ -123,44 +121,6 @@ export class MarketFlipsService {
       ),
       scan((acc, batch) => acc.concat(batch), [] as PriceEntry[]),
       map((entries) => this.buildResult(entries, params)),
-    );
-  }
-
-  /**
-   * Consulta bajo demanda los flips de UN solo item (cualquiera del juego,
-   * aunque no esté en el catálogo curado). Pide sus encantamientos + materiales
-   * y devuelve sus flips directos y de encantamiento.
-   */
-  lookupItem(
-    item: CatalogItem,
-    locations: string[] = AlbionDataService.CITIES,
-    qualities: number[] = [1, 2, 3, 4, 5],
-  ): Observable<MarketFlip[]> {
-    const ids = ENCHANTS.map((e) => (e === 0 ? item.id : `${item.id}@${e}`));
-    const matIds = enchantMaterialIds(item.tier);
-    const req = (list: string[], q: number[]) =>
-      this.api.getPrices(list, locations, q).pipe(
-        timeout(this.REQUEST_TIMEOUT),
-        catchError(() => of([] as PriceEntry[])),
-      );
-
-    return forkJoin([req(ids, qualities), req(matIds, [1])]).pipe(
-      map(([items, mats]) => {
-        const byId = this.indexFresh([...items, ...mats], locations);
-        const flips: MarketFlip[] = [];
-        for (const q of qualities) {
-          for (const e of ENCHANTS) {
-            const id = e === 0 ? item.id : `${item.id}@${e}`;
-            const d = this.directFlip(id, q, byId, item.tier);
-            if (d) flips.push(d);
-          }
-          for (let L = 1; L <= 3; L++) {
-            const u = this.upgradeFlip(item, q, L, byId);
-            if (u) flips.push(u);
-          }
-        }
-        return flips;
-      }),
     );
   }
 
@@ -235,7 +195,10 @@ export class MarketFlipsService {
 
   /** Construye el resultado completo (directos + encantamiento). */
   private buildResult(entries: PriceEntry[], params: ScanParams): FlipResult {
-    const byId = this.indexFresh(entries, params.locations);
+    const locations = [...new Set([...params.buyLocations, ...params.sellLocations])];
+    const byId = this.indexFresh(entries, locations);
+    const buyLocations = new Set(params.buyLocations);
+    const sellLocations = new Set(params.sellLocations);
     const flips: MarketFlip[] = [];
     let analysed = 0;
 
@@ -251,7 +214,7 @@ export class MarketFlipsService {
         if (wantDirect) {
           for (const e of ENCHANTS) {
             const id = e === 0 ? item.id : `${item.id}@${e}`;
-            const direct = this.directFlip(id, q, byId, item.tier);
+            const direct = this.directFlip(id, q, byId, item.tier, buyLocations, sellLocations);
             if (direct) flips.push(direct);
             if (byId.has(id)) analysed++;
           }
@@ -260,7 +223,7 @@ export class MarketFlipsService {
         // --- Flip por encantamiento: comprar base y subir a .L ---
         if (wantUpgrade) {
           for (let L = 1; L <= 3; L++) {
-            const up = this.upgradeFlip(item, q, L, byId);
+            const up = this.upgradeFlip(item, q, L, byId, buyLocations, sellLocations);
             if (up) flips.push(up);
             analysed++;
           }
@@ -282,12 +245,18 @@ export class MarketFlipsService {
     quality: number,
     byId: Map<string, PriceEntry[]>,
     tier: number,
+    buyLocations: Set<string>,
+    sellLocations: Set<string>,
   ): MarketFlip | null {
     const list = (byId.get(id) ?? []).filter((e) => e.quality === quality);
     if (list.length < 2) return null;
 
-    const cheapest = list.reduce((a, b) => (a.sell_price_min < b.sell_price_min ? a : b));
-    const dearest = list.reduce((a, b) => (a.sell_price_min > b.sell_price_min ? a : b));
+    const buyCandidates = list.filter((e) => buyLocations.has(e.city));
+    const sellCandidates = list.filter((e) => sellLocations.has(e.city));
+    if (!buyCandidates.length || !sellCandidates.length) return null;
+
+    const cheapest = buyCandidates.reduce((a, b) => (a.sell_price_min < b.sell_price_min ? a : b));
+    const dearest = sellCandidates.reduce((a, b) => (a.sell_price_min > b.sell_price_min ? a : b));
     if (cheapest.city === dearest.city) return null;
 
     const buyPrice = cheapest.sell_price_min;
@@ -321,9 +290,13 @@ export class MarketFlipsService {
     quality: number,
     L: number,
     byId: Map<string, PriceEntry[]>,
+    buyLocations: Set<string>,
+    sellLocations: Set<string>,
   ): MarketFlip | null {
     const targetId = `${item.id}@${L}`;
-    const sellList = (byId.get(targetId) ?? []).filter((e) => e.quality === quality);
+    const sellList = (byId.get(targetId) ?? []).filter(
+      (e) => e.quality === quality && sellLocations.has(e.city),
+    );
     if (!sellList.length) return null;
     const sell = sellList.reduce((a, b) => (a.sell_price_min > b.sell_price_min ? a : b));
 
@@ -343,7 +316,9 @@ export class MarketFlipsService {
     let best: { cost: number; buyCity: string; from: number; date: string } | null = null;
     for (let j = 0; j < L; j++) {
       const startId = j === 0 ? item.id : `${item.id}@${j}`;
-      const buyList = (byId.get(startId) ?? []).filter((e) => e.quality === quality);
+      const buyList = (byId.get(startId) ?? []).filter(
+        (e) => e.quality === quality && buyLocations.has(e.city),
+      );
       if (!buyList.length) continue;
       const buy = buyList.reduce((a, b) => (a.sell_price_min < b.sell_price_min ? a : b));
 
