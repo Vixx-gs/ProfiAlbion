@@ -124,6 +124,120 @@
 .pc__state { padding: 40px; text-align: center; color: var(--text-muted); }
 .pc__state--error { color: var(--danger); }
 
+/* ===== Filtros del panel de resultados ===== */
+.pc__filters {
+  display: flex;
+  align-items: flex-start;
+  gap: 30px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+.pc__filters--wrap { flex-wrap: wrap; border-top: none; padding-top: 0; }
+.pc__f { display: flex; flex-direction: column; gap: 10px; }
+.pc__f-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 800;
+}
+.pc__opts { display: flex; flex-direction: column; gap: 9px; }
+.pc__opts--wrap { flex-direction: row; flex-wrap: wrap; gap: 8px 16px; }
+.pc__select {
+  padding: 9px 11px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+}
+.pc__select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
+
+.pc__viewsw { display: inline-flex; gap: 6px; }
+.pc__viewbtn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  transition: color 0.18s, border-color 0.18s, background 0.18s;
+}
+.pc__viewbtn:hover { color: var(--text); }
+.pc__viewbtn--on { color: #1a1205; background: linear-gradient(135deg, var(--gold-bright), var(--gold-deep)); border-color: var(--gold); }
+
+/* Interruptor (igual que el de la calculadora de flips) */
+.sw {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 2px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.sw__track {
+  position: relative;
+  width: 34px;
+  height: 19px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-strong);
+  transition: background 0.18s, border-color 0.18s;
+  flex: none;
+}
+.sw__knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  transition: transform 0.18s, background 0.18s;
+}
+.sw--on { color: var(--text); }
+.sw--on .sw__track { background: linear-gradient(135deg, var(--primary), var(--primary-hover)); border-color: var(--primary); }
+.sw--on .sw__knob { transform: translateX(15px); background: #fff; }
+.sw__dot { width: 9px; height: 9px; border-radius: 50%; flex: none; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4); }
+.sw__label { white-space: nowrap; }
+
+.citydot { width: 8px; height: 8px; border-radius: 50%; flex: none; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4); }
+
+/* ===== Resultados: tarjetas (vista cuadrícula) ===== */
+.pc__rowgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.rowcard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.rowcard--empty { opacity: 0.55; }
+.rowcard__head { display: flex; align-items: center; gap: 8px; }
+.rowcard__icon { flex: none; width: 26px; height: 26px; object-fit: contain; }
+.rowcard__city { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; }
+.rowcard__quality { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+.rowcard__quality.q2 { color: #4ade80; }
+.rowcard__quality.q3 { color: #38bdf8; }
+.rowcard__quality.q4 { color: #c084fc; }
+.rowcard__quality.q5 { color: var(--gold-bright); }
+.rowcard__metric { display: flex; flex-direction: column; gap: 1px; padding-top: 6px; border-top: 1px solid var(--border); }
+.rowcard__label { font-size: 11px; color: var(--text-dim); }
+.rowcard__value { font-size: 14px; font-weight: 700; }
+.rowcard__value i { font-style: normal; color: var(--text-dim); font-weight: 400; font-size: 12px; }
+.rowcard__ago, .rowcard__sub { font-size: 11px; color: var(--text-dim); }
+.rowcard__nodata { font-size: 13px; color: var(--text-dim); font-style: italic; }
+
 /* ===== Tabla (reutiliza estilos generales) ===== */
 .table-wrap { overflow-x: auto; }
 .table { width: 100%; border-collapse: collapse; font-size: 14px; }
