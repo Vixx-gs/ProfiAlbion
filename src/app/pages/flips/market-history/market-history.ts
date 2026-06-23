@@ -50,8 +50,11 @@ export class MarketHistory implements OnInit {
   ];
 
   readonly scale = signal<Scale>(this.scales[0]);
-  /** Ciudad cuyo histórico se consulta: la de venta o la de compra. */
-  readonly city = signal<'sell' | 'buy'>('sell');
+
+  /** Ciudades disponibles para el filtro. */
+  readonly cities = AlbionDataService.CITIES;
+  /** Ciudad cuyo histórico se consulta (por defecto la de venta del flip). */
+  readonly selectedCity = signal<string>('');
 
   readonly points = signal<HistoryPoint[]>([]);
   readonly loading = signal(true);
@@ -70,21 +73,23 @@ export class MarketHistory implements OnInit {
   private readonly padB = 30;
 
   ngOnInit(): void {
+    // Por defecto, la ciudad de venta del flip.
+    this.selectedCity.set(this.flip().sellCity);
     this.load();
   }
 
   cityName(): string {
-    const f = this.flip();
-    return this.city() === 'sell' ? f.sellCity : f.buyCity;
+    return this.selectedCity();
   }
 
   setScale(s: Scale): void {
     this.scale.set(s);
     this.load();
   }
-  setCity(c: 'sell' | 'buy'): void {
-    if (this.city() === c) return;
-    this.city.set(c);
+  setCity(target: EventTarget | null): void {
+    const city = (target as HTMLSelectElement).value;
+    if (city === this.selectedCity()) return;
+    this.selectedCity.set(city);
     this.load();
   }
 

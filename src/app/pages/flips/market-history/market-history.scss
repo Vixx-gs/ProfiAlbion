@@ -99,6 +99,27 @@
 .seg:hover { color: var(--text); }
 .seg--on { color: #1a1205; background: linear-gradient(135deg, var(--gold-bright), var(--gold-deep)); }
 
+.mh__city { display: inline-flex; align-items: center; gap: 8px; }
+.mh__city-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  font-weight: 800;
+}
+.mh__select {
+  padding: 8px 11px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  transition: border-color 0.16s, box-shadow 0.16s;
+}
+.mh__select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
+
 .mh__state { padding: 60px; text-align: center; color: var(--text-muted); }
 .mh__state--error { color: var(--danger); }
 

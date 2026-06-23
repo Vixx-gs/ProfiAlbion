@@ -20,14 +20,14 @@
         </button>
       }
     </div>
-    <div class="mh__seg">
-      <button class="seg" type="button" [class.seg--on]="city() === 'sell'" (click)="setCity('sell')">
-        Venta: {{ flip().sellCity }}
-      </button>
-      <button class="seg" type="button" [class.seg--on]="city() === 'buy'" (click)="setCity('buy')">
-        Compra: {{ flip().buyCity }}
-      </button>
-    </div>
+    <label class="mh__city">
+      <span class="mh__city-label">Ciudad</span>
+      <select class="mh__select" (change)="setCity($event.target)">
+        @for (c of cities; track c) {
+          <option [value]="c" [selected]="selectedCity() === c">{{ c }}</option>
+        }
+      </select>
+    </label>
   </div>
 
   <!-- Gráfica -->
