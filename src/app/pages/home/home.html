@@ -78,11 +78,11 @@
                   {{ ago(f.updatedAt) }}
                 </td>
                 <td>
-                  <span class="city">{{ f.buyCity }}</span>
+                  <span class="city"><span class="citydot" [style.background]="cityColor(f.buyCity)"></span>{{ f.buyCity }}</span>
                   <span class="price">{{ f.buyPrice | number: '1.0-0' }} <i>plata</i></span>
                 </td>
                 <td>
-                  <span class="city">{{ f.sellCity }}</span>
+                  <span class="city"><span class="citydot" [style.background]="cityColor(f.sellCity)"></span>{{ f.sellCity }}</span>
                   <span class="sell-price">
                     <span class="price">{{ f.sellPrice | number: '1.0-0' }} <i>plata</i></span>
                     <button

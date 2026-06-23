@@ -3,6 +3,18 @@ import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MarketFlipsService, MarketFlip } from '../../core/market-flips.service';
 
+/** Color identificativo de cada ciudad (puntos junto al nombre). */
+const CITY_COLORS: Record<string, string> = {
+  'Fort Sterling': '#d8dde8',
+  Lymhurst: '#7ed957',
+  Bridgewatch: '#e8a33d',
+  Martlock: '#4f8cff',
+  Thetford: '#b06fe8',
+  Caerleon: '#e8434f',
+  Brecilien: '#3fc7b4',
+  'Black Market': '#2b2f3a',
+};
+
 @Component({
   selector: 'app-home',
   imports: [DecimalPipe, RouterLink],
@@ -78,6 +90,11 @@ export class Home {
   /** Nombre de la calidad (1-5). */
   qualityLabel(q: number): string {
     return this.QUALITY_LABELS[q] ?? 'Normal';
+  }
+
+  /** Color identificativo de una ciudad (punto junto al nombre). */
+  cityColor(city: string): string {
+    return CITY_COLORS[city] ?? 'var(--text-dim)';
   }
 
   /** Clase de frescura según antigüedad del dato: reciente / medio / viejo. */

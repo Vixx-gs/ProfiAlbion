@@ -265,10 +265,13 @@
 .freshdot--old { background: var(--danger); box-shadow: 0 0 8px rgba(240, 85, 107, 0.5); }
 
 .city {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   color: var(--text-muted);
 }
+.citydot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4); }
 .price { font-weight: 700; }
 .price i { font-style: normal; color: var(--text-dim); font-weight: 400; font-size: 12px; }
 .profit {
