@@ -181,7 +181,7 @@
           </thead>
           <tbody>
             @for (f of visible(); track rowKey(f)) {
-              <tr>
+              <tr class="row-click" (click)="openHistory(f)" title="Ver historial de mercado">
                 <td class="cell-item">
                   <img
                     class="item-icon"
@@ -267,4 +267,8 @@
       }
     }
   </div>
+
+  @if (historyFlip(); as f) {
+    <app-market-history [flip]="f" (close)="closeHistory()" />
+  }
 </section>

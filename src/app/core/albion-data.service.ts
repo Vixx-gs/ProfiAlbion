@@ -20,6 +20,21 @@ export interface GoldPrice {
   timestamp: string;
 }
 
+/** Un punto del histórico de mercado. */
+export interface HistoryPoint {
+  item_count: number;
+  avg_price: number;
+  timestamp: string;
+}
+
+/** Histórico de un item en una ubicación y calidad. */
+export interface HistoryEntry {
+  location: string;
+  item_id: string;
+  quality: number;
+  data: HistoryPoint[];
+}
+
 /**
  * Cliente del Albion Online Data Project (AODP).
  * Por ahora fijo al servidor de Europa.
@@ -70,5 +85,24 @@ export class AlbionDataService {
   /** Precio del oro: últimas `count` entradas. */
   getGold(count = 24): Observable<GoldPrice[]> {
     return this.http.get<GoldPrice[]>(`${this.base}/gold.json?count=${count}`);
+  }
+
+  /**
+   * Histórico de mercado de un item.
+   * @param timeScale resolución en horas: 1 (horaria), 6, 24 (diaria).
+   */
+  getHistory(
+    itemId: string,
+    locations: string[],
+    qualities: number[],
+    timeScale = 1,
+  ): Observable<HistoryEntry[]> {
+    const id = encodeURIComponent(itemId);
+    const params = [
+      'locations=' + locations.map((l) => encodeURIComponent(l)).join(','),
+      'qualities=' + qualities.join(','),
+      'time-scale=' + timeScale,
+    ];
+    return this.http.get<HistoryEntry[]>(`${this.base}/history/${id}.json?${params.join('&')}`);
   }
 }

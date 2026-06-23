@@ -9,6 +9,7 @@ import {
 } from '../../core/market-flips.service';
 import { AlbionDataService } from '../../core/albion-data.service';
 import { ITEM_CATALOG, ENCHANTS, TIERS, displayName } from '../../core/items.catalog';
+import { MarketHistory } from './market-history/market-history';
 
 type SortKey = 'update' | 'profit' | 'margin';
 
@@ -34,7 +35,7 @@ const CITY_COLORS: Record<string, string> = {
 
 @Component({
   selector: 'app-flips',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, MarketHistory],
   templateUrl: './flips.html',
   styleUrl: './flips.scss',
 })
@@ -99,6 +100,16 @@ export class Flips {
 
   /** Popover de compra instantánea abierto (rowKey). */
   readonly openPopover = signal<string | null>(null);
+
+  /** Flip cuyo historial de mercado se muestra en el modal (null = cerrado). */
+  readonly historyFlip = signal<MarketFlip | null>(null);
+
+  openHistory(f: MarketFlip): void {
+    this.historyFlip.set(f);
+  }
+  closeHistory(): void {
+    this.historyFlip.set(null);
+  }
 
   /** Suscripción del escaneo en curso (para cancelar al relanzar). */
   private scanSub?: import('rxjs').Subscription;

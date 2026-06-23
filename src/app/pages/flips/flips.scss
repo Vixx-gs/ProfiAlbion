@@ -276,6 +276,7 @@
 .table tbody tr { position: relative; transition: background 0.18s; }
 .table tbody tr:hover { background: linear-gradient(90deg, var(--bg-hover), transparent 90%); }
 .table tbody tr:has(.pop) { z-index: 30; }
+.row-click { cursor: pointer; }
 .table tbody td:first-child { box-shadow: inset 3px 0 0 transparent; transition: box-shadow 0.18s; }
 .table tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 var(--gold); }
 .num { text-align: right; }
