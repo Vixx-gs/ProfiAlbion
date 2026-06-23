@@ -214,16 +214,7 @@
   transition: background 0.14s;
 }
 .combo__opt:hover { background: var(--bg-hover); }
-.combo__icon {
-  flex: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 7px;
-  background: radial-gradient(circle at 30% 25%, var(--bg-hover), var(--bg-2));
-  border: 1px solid var(--border-strong);
-  object-fit: contain;
-  padding: 1px;
-}
+.combo__icon { flex: none; width: 44px; height: 44px; object-fit: contain; }
 .combo__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .f2 { display: flex; flex-direction: column; gap: 6px; }
 .f2__label {
@@ -297,16 +288,7 @@
 .num { text-align: right; }
 
 .cell-item { display: flex; align-items: center; gap: 12px; min-width: 240px; }
-.item-icon {
-  flex: none;
-  width: 42px;
-  height: 42px;
-  border-radius: 9px;
-  background: radial-gradient(circle at 30% 25%, var(--bg-hover), var(--bg-2));
-  border: 1px solid var(--border-strong);
-  object-fit: contain;
-  padding: 2px;
-}
+.item-icon { flex: none; width: 60px; height: 60px; object-fit: contain; }
 .item-text { display: flex; flex-direction: column; gap: 3px; }
 .item-name { font-weight: 700; }
 .item-sub { display: flex; gap: 6px; font-size: 12px; }

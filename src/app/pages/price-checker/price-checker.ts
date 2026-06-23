@@ -146,7 +146,7 @@ export class PriceChecker {
   }
 
   iconUrl(id: string): string {
-    return `https://render.albiononline.com/v1/item/${id}.png?size=64`;
+    return `https://render.albiononline.com/v1/item/${id}.png?size=120`;
   }
   qualityLabel(q: number): string {
     return this.qualityLabels[q] ?? 'Normal';

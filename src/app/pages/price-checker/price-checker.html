@@ -9,7 +9,7 @@
     <div class="pc__search" (click)="$event.stopPropagation()">
       <span class="pc__search-icon">
         @if (selected(); as s) {
-          <img [src]="iconUrl(s.id)" [alt]="s.name" width="44" height="44" />
+          <img [src]="iconUrl(s.id)" [alt]="s.name" width="56" height="56" />
         } @else {
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8">
             <circle cx="11" cy="11" r="7" />
@@ -32,7 +32,7 @@
         <div class="pc__list">
           @for (opt of suggestions(); track opt.id) {
             <button class="pc__opt" type="button" (click)="selectOption(opt)">
-              <img class="pc__opt-icon" [src]="iconUrl(opt.id)" [alt]="opt.name" loading="lazy" width="32" height="32" />
+              <img class="pc__opt-icon" [src]="iconUrl(opt.id)" [alt]="opt.name" loading="lazy" width="44" height="44" />
               <span class="pc__opt-name">{{ opt.name }}</span>
             </button>
           }
@@ -45,7 +45,7 @@
   @if (selected(); as s) {
     <div class="card pc__price-card">
       <div class="pc__price-head">
-        <img class="pc__price-icon" [src]="iconUrl(s.id)" [alt]="s.name" width="68" height="68" />
+        <img class="pc__price-icon" [src]="iconUrl(s.id)" [alt]="s.name" width="80" height="80" />
         <h2 class="pc__price-title">{{ s.name }}</h2>
         <button class="pc__close" type="button" title="Cerrar" (click)="closeSelected()">✕</button>
       </div>
@@ -91,7 +91,7 @@
         <div class="pc__grid">
           @for (id of recent(); track id) {
             <button class="pc__tile" type="button" (click)="selectRecent(id)" [title]="displayName(id)">
-              <img class="pc__tile-icon" [src]="iconUrl(id)" [alt]="id" loading="lazy" width="92" height="92" />
+              <img class="pc__tile-icon" [src]="iconUrl(id)" [alt]="id" loading="lazy" width="112" height="112" />
               <span
                 class="pc__tile-star"
                 [class.pc__tile-star--on]="isFavorite(id)"
@@ -112,7 +112,7 @@
         <div class="pc__grid">
           @for (opt of favoriteItems(); track opt.id) {
             <button class="pc__tile" type="button" (click)="selectRecent(opt.id)" [title]="opt.name">
-              <img class="pc__tile-icon" [src]="iconUrl(opt.id)" [alt]="opt.name" loading="lazy" width="92" height="92" />
+              <img class="pc__tile-icon" [src]="iconUrl(opt.id)" [alt]="opt.name" loading="lazy" width="112" height="112" />
               <span
                 class="pc__tile-star pc__tile-star--on"
                 (click)="toggleFavorite(opt.id, $event)"
