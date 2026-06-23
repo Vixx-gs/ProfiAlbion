@@ -63,11 +63,6 @@ export class Navbar {
             { label: 'Mercado de la isla', iconId: 'T8_BAG' },
             { label: 'Temporizadores', iconId: 'T8_POTION_LAVA' },
             { label: 'Historial del precio del oro', iconId: 'T4_SKILLBOOK_STANDARD' },
-          ],
-        },
-        {
-          title: 'Suscripción',
-          links: [
             { label: 'Planificador de crafteo', iconId: 'T8_2H_HAMMER', shortcut: 'Ctrl + 7' },
             { label: 'Gestión de maestrías', iconId: 'T8_RUNE' },
           ],
