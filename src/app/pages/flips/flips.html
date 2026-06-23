@@ -142,6 +142,9 @@
             @if (streaming()) {
               <span class="results__live">· escaneando más…</span>
             }
+            @if (lookupLoading()) {
+              <span class="results__live">· buscando ítem…</span>
+            }
           </p>
         }
       </div>
@@ -156,14 +159,16 @@
       </div>
     </div>
 
-    @if (loading()) {
-      <div class="results__state">Escaneando precios…</div>
-    } @else if (error()) {
+    @if (error()) {
       <div class="results__state results__state--error">{{ error() }}</div>
-    } @else if (!result() || result()!.flips.length === 0) {
-      <div class="results__state">Sin oportunidades rentables. Ajusta los filtros y vuelve a escanear.</div>
     } @else if (displayed().length === 0) {
-      <div class="results__state">Ningún flip cumple los filtros de cliente.</div>
+      @if (loading() || lookupLoading()) {
+        <div class="results__state">{{ lookupLoading() ? 'Buscando datos del ítem…' : 'Escaneando precios…' }}</div>
+      } @else if (search()) {
+        <div class="results__state">Ningún flip rentable para este ítem/filtro ahora mismo.</div>
+      } @else {
+        <div class="results__state">Sin oportunidades rentables. Ajusta los filtros y vuelve a escanear.</div>
+      }
     } @else {
       <div class="table-wrap">
         <table class="table">

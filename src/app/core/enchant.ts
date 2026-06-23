@@ -23,6 +23,7 @@ const RESOURCE_COUNT: Record<ItemCategory, number> = {
   armor: 16,
   head: 8,
   shoes: 8,
+  offhand: 8, // escudos, antorchas, libros…
   bag: 32, // 192 materiales de encantamiento por nivel
   cape: 16, // 96 materiales por nivel
 };

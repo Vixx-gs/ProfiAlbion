@@ -8,7 +8,15 @@ import {
   ScanParams,
 } from '../../core/market-flips.service';
 import { AlbionDataService } from '../../core/albion-data.service';
-import { ITEM_CATALOG, ENCHANTS, TIERS, displayName } from '../../core/items.catalog';
+import {
+  ITEM_CATALOG,
+  ALL_ITEMS,
+  ITEM_BY_ID,
+  ENCHANTS,
+  TIERS,
+  baseOf,
+  displayName,
+} from '../../core/items.catalog';
 import { MarketHistory } from './market-history/market-history';
 
 type SortKey = 'update' | 'profit' | 'margin';
@@ -71,13 +79,23 @@ export class Flips {
   readonly sortBy = signal<SortKey>('update');
   readonly minProfit = signal(0);
 
-  /** Buscador con desplegable: todas las variantes del catálogo (tier + encant.). */
-  readonly itemOptions: ItemOption[] = ITEM_CATALOG.flatMap((it) =>
+  /** Buscador: TODAS las variantes del juego (tier + encantamiento). */
+  readonly itemOptions: ItemOption[] = ALL_ITEMS.flatMap((it) =>
     ENCHANTS.map((e) => {
       const id = e === 0 ? it.id : `${it.id}@${e}`;
       return { id, name: displayName(id) };
     }),
   ).sort((a, b) => a.name.localeCompare(b.name, 'es'));
+
+  /** Ids base que ya cubre el escaneo "Top" (no requieren consulta extra). */
+  private readonly curatedIds = new Set(ITEM_CATALOG.map((i) => i.id));
+  /** Ids base ya consultados bajo demanda (para no repetir). */
+  private readonly lookedUp = new Set<string>();
+  /** Flips traídos bajo demanda (items fuera del escaneo Top). */
+  readonly extraFlips = signal<MarketFlip[]>([]);
+  /** Consulta de un item en curso. */
+  readonly lookupLoading = signal(false);
+  private lookupSub?: import('rxjs').Subscription;
 
   /** ¿Está abierto el desplegable del buscador? */
   readonly searchOpen = signal(false);
@@ -116,13 +134,20 @@ export class Flips {
 
   /** Flips tras filtros de cliente + orden. */
   readonly displayed = computed<MarketFlip[]>(() => {
-    const res = this.result();
-    if (!res) return [];
+    const base = this.result()?.flips ?? [];
+    const extra = this.extraFlips();
+    // Combina escaneo Top + items consultados bajo demanda (sin duplicar).
+    let source = base;
+    if (extra.length) {
+      const seen = new Set(base.map((f) => this.rowKey(f)));
+      source = [...base, ...extra.filter((f) => !seen.has(this.rowKey(f)))];
+    }
+
     const q = this.search().trim().toLowerCase();
     const mp = this.minProfit();
     const hid = this.hidden();
 
-    const arr = res.flips.filter(
+    const arr = source.filter(
       (f) =>
         f.profit >= mp &&
         (!q || f.name.toLowerCase().includes(q)) &&
@@ -228,11 +253,33 @@ export class Flips {
   openSearch(): void {
     this.searchOpen.set(true);
   }
-  /** Selecciona un item del desplegable: filtra la tabla por su nombre exacto. */
+  /** Selecciona un item del desplegable: filtra por su nombre y, si no está en
+   * el escaneo Top, lo consulta bajo demanda. */
   selectItem(opt: ItemOption): void {
     this.search.set(opt.name);
     this.searchOpen.set(false);
     this.resetPage();
+    this.ensureItem(baseOf(opt.id));
+  }
+
+  /** Trae los flips de un item bajo demanda si aún no se conocen. */
+  private ensureItem(baseId: string): void {
+    if (this.curatedIds.has(baseId) || this.lookedUp.has(baseId)) return;
+    const item = ITEM_BY_ID.get(baseId);
+    if (!item) return;
+    this.lookedUp.add(baseId);
+    this.lookupLoading.set(true);
+    this.lookupSub?.unsubscribe();
+    this.lookupSub = this.service.lookupItem(item).subscribe({
+      next: (flips) => {
+        this.extraFlips.update((cur) => [...cur, ...flips]);
+        this.lookupLoading.set(false);
+      },
+      error: () => {
+        this.lookedUp.delete(baseId);
+        this.lookupLoading.set(false);
+      },
+    });
   }
   /** Limpia el buscador. */
   clearSearch(): void {

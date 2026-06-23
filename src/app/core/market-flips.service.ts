@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, from, map, mergeMap, of, scan, timeout, catchError } from 'rxjs';
+import { Observable, forkJoin, from, map, mergeMap, of, scan, timeout, catchError } from 'rxjs';
 import { AlbionDataService, PriceEntry } from './albion-data.service';
 import {
   ITEM_CATALOG,
   ITEM_BY_ID,
+  CatalogItem,
   ENCHANTS,
   displayName,
 } from './items.catalog';
@@ -122,6 +123,44 @@ export class MarketFlipsService {
       ),
       scan((acc, batch) => acc.concat(batch), [] as PriceEntry[]),
       map((entries) => this.buildResult(entries, params)),
+    );
+  }
+
+  /**
+   * Consulta bajo demanda los flips de UN solo item (cualquiera del juego,
+   * aunque no esté en el catálogo curado). Pide sus encantamientos + materiales
+   * y devuelve sus flips directos y de encantamiento.
+   */
+  lookupItem(
+    item: CatalogItem,
+    locations: string[] = AlbionDataService.CITIES,
+    qualities: number[] = [1, 2, 3, 4, 5],
+  ): Observable<MarketFlip[]> {
+    const ids = ENCHANTS.map((e) => (e === 0 ? item.id : `${item.id}@${e}`));
+    const matIds = enchantMaterialIds(item.tier);
+    const req = (list: string[], q: number[]) =>
+      this.api.getPrices(list, locations, q).pipe(
+        timeout(this.REQUEST_TIMEOUT),
+        catchError(() => of([] as PriceEntry[])),
+      );
+
+    return forkJoin([req(ids, qualities), req(matIds, [1])]).pipe(
+      map(([items, mats]) => {
+        const byId = this.indexFresh([...items, ...mats], locations);
+        const flips: MarketFlip[] = [];
+        for (const q of qualities) {
+          for (const e of ENCHANTS) {
+            const id = e === 0 ? item.id : `${item.id}@${e}`;
+            const d = this.directFlip(id, q, byId, item.tier);
+            if (d) flips.push(d);
+          }
+          for (let L = 1; L <= 3; L++) {
+            const u = this.upgradeFlip(item, q, L, byId);
+            if (u) flips.push(u);
+          }
+        }
+        return flips;
+      }),
     );
   }
 
