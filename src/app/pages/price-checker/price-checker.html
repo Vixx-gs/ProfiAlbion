@@ -89,11 +89,11 @@
             <div class="pc__opts">
               <button class="sw" [class.sw--on]="metricBuy()" type="button" (click)="toggleMetric('buy')">
                 <span class="sw__track"><span class="sw__knob"></span></span>
-                <span class="sw__label">Pedidos de compra</span>
+                <span class="sw__label">Órdenes de compra</span>
               </button>
               <button class="sw" [class.sw--on]="metricSell()" type="button" (click)="toggleMetric('sell')">
                 <span class="sw__track"><span class="sw__knob"></span></span>
-                <span class="sw__label">Pedidos de venta</span>
+                <span class="sw__label">Órdenes de venta</span>
               </button>
               <button class="sw" [class.sw--on]="metricVolume()" type="button" (click)="toggleMetric('volume')">
                 <span class="sw__track"><span class="sw__knob"></span></span>
@@ -155,7 +155,7 @@
 
                 @if (metricBuy()) {
                   <div class="rowcard__metric">
-                    <span class="rowcard__label">Pedidos de compra (plata)</span>
+                    <span class="rowcard__label">Órdenes de compra (plata)</span>
                     @if (r.buyMax) {
                       <span class="rowcard__value">{{ r.buyMin | number: '1.0-0' }} – {{ r.buyMax | number: '1.0-0' }}</span>
                       <span class="rowcard__ago">{{ ago(r.buyDate) }}</span>
@@ -166,7 +166,7 @@
                 }
                 @if (metricSell()) {
                   <div class="rowcard__metric">
-                    <span class="rowcard__label">Pedidos de venta (plata)</span>
+                    <span class="rowcard__label">Órdenes de venta (plata)</span>
                     @if (r.sellMin) {
                       <span class="rowcard__value">{{ r.sellMin | number: '1.0-0' }} – {{ r.sellMax | number: '1.0-0' }}</span>
                       <span class="rowcard__ago">{{ ago(r.sellDate) }}</span>
@@ -196,8 +196,8 @@
                 <tr>
                   <th>Ciudad</th>
                   <th>Calidad</th>
-                  @if (metricBuy()) { <th class="num">Pedidos de compra</th> }
-                  @if (metricSell()) { <th class="num">Pedidos de venta</th> }
+                  @if (metricBuy()) { <th class="num">Órdenes de compra</th> }
+                  @if (metricSell()) { <th class="num">Órdenes de venta</th> }
                   @if (metricVolume()) { <th class="num">Volumen (24h)</th> }
                 </tr>
               </thead>
