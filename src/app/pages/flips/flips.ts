@@ -45,8 +45,8 @@ export class Flips {
   readonly qualities = [
     { id: 1, label: 'Normal' },
     { id: 2, label: 'Bueno' },
-    { id: 3, label: 'Sobresaliente' },
-    { id: 4, label: 'Excelente' },
+    { id: 3, label: 'Notable' },
+    { id: 4, label: 'Sobresaliente' },
     { id: 5, label: 'Obra maestra' },
   ];
 
@@ -263,7 +263,9 @@ export class Flips {
   // ===== Acciones de fila (persistentes) =====
 
   rowKey(f: MarketFlip): string {
-    return `${f.itemId}|${f.quality}|${f.type}`;
+    // Incluye buyCity (y el nivel de partida en 'upgrade'): puede haber varias
+    // filas del mismo item+calidad+tipo, una por cada ciudad de compra rentable.
+    return `${f.itemId}|${f.quality}|${f.type}|${f.buyCity}|${f.upgradeFromEnchant ?? ''}`;
   }
   isSaved(f: MarketFlip): boolean {
     return this.saved().has(this.rowKey(f));
@@ -375,8 +377,8 @@ export class Flips {
   private readonly QUALITY_LABELS: Record<number, string> = {
     1: 'Normal',
     2: 'Bueno',
-    3: 'Sobresaliente',
-    4: 'Excelente',
+    3: 'Notable',
+    4: 'Sobresaliente',
     5: 'Obra maestra',
   };
   qualityLabel(q: number): string {
