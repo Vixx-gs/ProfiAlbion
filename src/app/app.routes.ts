@@ -8,5 +8,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/flips/flips').then((m) => m.Flips),
     title: 'Calculadora de Flipping de Mercado · ProfiAlbion',
   },
+  {
+    path: 'precios',
+    loadComponent: () =>
+      import('./pages/price-checker/price-checker').then((m) => m.PriceChecker),
+    title: 'Comprobador de precios · ProfiAlbion',
+  },
   { path: '**', redirectTo: '' },
 ];

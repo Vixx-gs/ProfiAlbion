@@ -1,0 +1,129 @@
+<section class="container pc">
+  <header class="pc__head">
+    <h1 class="pc__title">Comprobador de precios</h1>
+    <p class="pc__sub">Consulta el precio actual de cualquier item vendible de Albion Online.</p>
+  </header>
+
+  <!-- ===== Buscador ===== -->
+  <div class="card pc__search-card">
+    <div class="pc__search" (click)="$event.stopPropagation()">
+      <span class="pc__search-icon">
+        @if (selected(); as s) {
+          <img [src]="iconUrl(s.id)" [alt]="s.name" width="26" height="26" />
+        } @else {
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.3-4.3" />
+          </svg>
+        }
+      </span>
+      <input
+        class="pc__search-input"
+        type="text"
+        placeholder="Buscar item…"
+        autocomplete="off"
+        [value]="search()"
+        (input)="setSearch($event.target)"
+        (focus)="openSearch()"
+      />
+      <button class="pc__search-clear" type="button" title="Limpiar" (click)="clearSearch()">✕</button>
+
+      @if (searchOpen() && suggestions().length) {
+        <div class="pc__list">
+          @for (opt of suggestions(); track opt.id) {
+            <button class="pc__opt" type="button" (click)="selectOption(opt)">
+              <img class="pc__opt-icon" [src]="iconUrl(opt.id)" [alt]="opt.name" loading="lazy" width="32" height="32" />
+              <span class="pc__opt-name">{{ opt.name }}</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ===== Precio del item seleccionado ===== -->
+  @if (selected(); as s) {
+    <div class="card pc__price-card">
+      <div class="pc__price-head">
+        <img class="pc__price-icon" [src]="iconUrl(s.id)" [alt]="s.name" width="48" height="48" />
+        <h2 class="pc__price-title">{{ s.name }}</h2>
+        <button class="pc__close" type="button" title="Cerrar" (click)="closeSelected()">✕</button>
+      </div>
+
+      @if (loadingPrices()) {
+        <div class="pc__state">Cargando precios…</div>
+      } @else if (priceError()) {
+        <div class="pc__state pc__state--error">{{ priceError() }}</div>
+      } @else if (!priceRows().length) {
+        <div class="pc__state">Sin datos de precio recientes para este item.</div>
+      } @else {
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Ciudad</th>
+                <th>Calidad</th>
+                <th class="num">Compra instantánea</th>
+                <th class="num">Venta instantánea</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of priceRows(); track p.city + '|' + p.quality) {
+                <tr>
+                  <td>{{ p.city }}</td>
+                  <td>{{ qualityLabel(p.quality) }}</td>
+                  <td class="num">{{ p.buy_price_max | number: '1.0-0' }} <i>plata</i></td>
+                  <td class="num">{{ p.sell_price_min | number: '1.0-0' }} <i>plata</i></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ===== Recientes y favoritos ===== -->
+  <div class="pc__grids">
+    <div class="card pc__grid-card">
+      <h3 class="pc__grid-title">Items buscados recientemente <span>(máx. 25)</span></h3>
+      @if (recent().length) {
+        <div class="pc__grid">
+          @for (id of recent(); track id) {
+            <button class="pc__tile" type="button" (click)="selectRecent(id)" [title]="displayName(id)">
+              <img class="pc__tile-icon" [src]="iconUrl(id)" [alt]="id" loading="lazy" width="56" height="56" />
+              <span
+                class="pc__tile-star"
+                [class.pc__tile-star--on]="isFavorite(id)"
+                (click)="toggleFavorite(id, $event)"
+                title="Añadir a favoritos"
+              >★</span>
+            </button>
+          }
+        </div>
+      } @else {
+        <p class="pc__empty">Aún no has buscado ningún item.</p>
+      }
+    </div>
+
+    <div class="card pc__grid-card">
+      <h3 class="pc__grid-title">Items favoritos <span>(máx. 25)</span></h3>
+      @if (favoriteItems().length) {
+        <div class="pc__grid">
+          @for (opt of favoriteItems(); track opt.id) {
+            <button class="pc__tile" type="button" (click)="selectRecent(opt.id)" [title]="opt.name">
+              <img class="pc__tile-icon" [src]="iconUrl(opt.id)" [alt]="opt.name" loading="lazy" width="56" height="56" />
+              <span
+                class="pc__tile-star pc__tile-star--on"
+                (click)="toggleFavorite(opt.id, $event)"
+                title="Quitar de favoritos"
+              >★</span>
+            </button>
+          }
+        </div>
+      } @else {
+        <p class="pc__empty">Aún no tienes ningún item favorito.</p>
+      }
+    </div>
+  </div>
+</section>

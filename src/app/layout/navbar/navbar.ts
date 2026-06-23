@@ -56,7 +56,7 @@ export class Navbar {
       sections: [
         {
           links: [
-            { label: 'Comprobador de precios', iconId: 'T8_JOURNAL_WOOD', shortcut: 'Ctrl + 8' },
+            { label: 'Comprobador de precios', iconId: 'T8_JOURNAL_WOOD', shortcut: 'Ctrl + 8', route: '/precios' },
             { label: 'Precios de recursos', iconId: 'T8_METALBAR' },
             { label: 'Mapa de Avalon', iconId: 'T8_RELIC' },
             { label: 'Gestión de islas', iconId: 'T8_PUMPKIN' },
