@@ -237,6 +237,7 @@
 .rowcard__value i { font-style: normal; color: var(--text-dim); font-weight: 400; font-size: 12px; }
 .rowcard__ago, .rowcard__sub { font-size: 11px; color: var(--text-dim); }
 .rowcard__nodata { font-size: 13px; color: var(--text-dim); font-style: italic; }
+.rowcard__warn { margin-left: 4px; color: var(--gold-bright); cursor: help; }
 
 /* ===== Tabla (reutiliza estilos generales) ===== */
 .table-wrap { overflow-x: auto; }

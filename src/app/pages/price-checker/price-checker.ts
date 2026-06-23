@@ -29,7 +29,18 @@ interface PriceRow {
   /** Fecha del dato más reciente de esta fila (para "actualizado hace…"). */
   updatedAt: string | null;
   hasData: boolean;
+  /**
+   * Posible dato atípico: precio de venta muy por encima del de compra en la
+   * misma fila. Suele indicar un listado aislado (o "troll") en un item poco
+   * negociado, no el precio real de mercado. AODP solo escanea lo que abren
+   * los clientes del juego, así que estos casos no se pueden corregir, solo
+   * avisar.
+   */
+  suspect: boolean;
 }
+
+/** Umbral venta/compra a partir del cual avisamos de precio atípico. */
+const SUSPECT_RATIO = 4;
 
 type ViewMode = 'grid' | 'list';
 type SortMode = 'default' | 'volume' | 'buyPrice' | 'sellPrice';
@@ -191,6 +202,7 @@ export class PriceChecker {
         const updatedAt = dates.length
           ? dates.reduce((a, b) => (this.time(a) > this.time(b) ? a : b))
           : null;
+        const suspect = !!buyMax && !!sellMin && sellMin > buyMax * SUSPECT_RATIO;
 
         out.push({
           city,
@@ -205,6 +217,7 @@ export class PriceChecker {
           volumeSilver,
           updatedAt,
           hasData,
+          suspect,
         });
       }
     }

@@ -168,7 +168,12 @@
                   <div class="rowcard__metric">
                     <span class="rowcard__label">Órdenes de venta (plata)</span>
                     @if (r.sellMin) {
-                      <span class="rowcard__value">{{ r.sellMin | number: '1.0-0' }} – {{ r.sellMax | number: '1.0-0' }}</span>
+                      <span class="rowcard__value">
+                        {{ r.sellMin | number: '1.0-0' }} – {{ r.sellMax | number: '1.0-0' }}
+                        @if (r.suspect) {
+                          <span class="rowcard__warn" title="Precio mucho más alto que las órdenes de compra: puede ser un listado aislado, no representativo. Verifícalo en el juego.">⚠</span>
+                        }
+                      </span>
                       <span class="rowcard__ago">{{ ago(r.sellDate) }}</span>
                     } @else {
                       <span class="rowcard__nodata">Sin datos</span>
@@ -213,7 +218,12 @@
                     }
                     @if (metricSell()) {
                       <td class="num">
-                        @if (r.sellMin) { {{ r.sellMin | number: '1.0-0' }} – {{ r.sellMax | number: '1.0-0' }} } @else { Sin datos }
+                        @if (r.sellMin) {
+                          {{ r.sellMin | number: '1.0-0' }} – {{ r.sellMax | number: '1.0-0' }}
+                          @if (r.suspect) {
+                            <span class="rowcard__warn" title="Precio mucho más alto que las órdenes de compra: puede ser un listado aislado, no representativo. Verifícalo en el juego.">⚠</span>
+                          }
+                        } @else { Sin datos }
                       </td>
                     }
                     @if (metricVolume()) {
