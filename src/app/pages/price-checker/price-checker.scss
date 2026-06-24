@@ -222,6 +222,8 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
+.rowcard--click { cursor: pointer; transition: border-color 0.18s; }
+.rowcard--click:hover { border-color: var(--gold); }
 .rowcard--empty { opacity: 0.55; }
 .rowcard__head { display: flex; align-items: center; gap: 8px; }
 .rowcard__icon { flex: none; width: 26px; height: 26px; object-fit: contain; }
@@ -255,6 +257,7 @@
 }
 .table tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
 .table tbody tr:hover { background: linear-gradient(90deg, var(--bg-hover), transparent 90%); }
+.row-click { cursor: pointer; }
 .num { text-align: right; }
 .num i { font-style: normal; color: var(--text-dim); font-weight: 400; font-size: 12px; }
 

@@ -2,7 +2,9 @@ import { Component, HostListener, computed, inject, signal } from '@angular/core
 import { DecimalPipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { AlbionDataService, HistoryEntry, PriceEntry } from '../../core/albion-data.service';
-import { ALL_ITEMS, ENCHANTS, displayName } from '../../core/items.catalog';
+import { ALL_ITEMS, ENCHANTS, ITEM_BY_ID, baseOf, displayName } from '../../core/items.catalog';
+import { MarketFlip } from '../../core/market-flips.service';
+import { MarketHistory } from '../flips/market-history/market-history';
 
 /** Opción del buscador: una variante de item (con tier y encantamiento). */
 interface ItemOption {
@@ -50,7 +52,7 @@ const MAX_FAVORITES = 25;
 
 @Component({
   selector: 'app-price-checker',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, MarketHistory],
   templateUrl: './price-checker.html',
   styleUrl: './price-checker.scss',
 })
@@ -122,6 +124,33 @@ export class PriceChecker {
 
   private readonly prices = signal<PriceEntry[]>([]);
   private readonly history = signal<HistoryEntry[]>([]);
+
+  /** Fila cuyo flujo de mercado (gráfica) se muestra en el modal (null = cerrado). */
+  readonly historyFlip = signal<MarketFlip | null>(null);
+
+  /** Abre el modal de historial de mercado para una fila ciudad+calidad. */
+  openHistory(row: PriceRow): void {
+    const item = this.selected();
+    if (!item) return;
+    const tier = ITEM_BY_ID.get(baseOf(item.id))?.tier ?? 0;
+    this.historyFlip.set({
+      itemId: item.id,
+      name: item.name,
+      tier,
+      quality: row.quality,
+      buyCity: row.city,
+      buyPrice: row.buyMax,
+      sellCity: row.city,
+      sellPrice: row.sellMin,
+      sellBuyMax: row.buyMax,
+      profit: 0,
+      marginPct: 0,
+      updatedAt: row.updatedAt ?? new Date().toISOString(),
+    });
+  }
+  closeHistory(): void {
+    this.historyFlip.set(null);
+  }
 
   // ===== Filtros del panel de resultados =====
 

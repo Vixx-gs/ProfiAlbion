@@ -144,7 +144,12 @@
         } @else if (viewMode() === 'grid') {
           <div class="pc__rowgrid">
             @for (r of rows(); track r.city + '|' + r.quality) {
-              <div class="rowcard" [class.rowcard--empty]="!r.hasData">
+              <div
+                class="rowcard rowcard--click"
+                [class.rowcard--empty]="!r.hasData"
+                (click)="openHistory(r)"
+                title="Ver flujo de mercado"
+              >
                 <div class="rowcard__head">
                   <img class="rowcard__icon" [src]="iconUrl(s.id)" [alt]="s.name" width="26" height="26" />
                   <span class="rowcard__city">
@@ -208,7 +213,7 @@
               </thead>
               <tbody>
                 @for (r of rows(); track r.city + '|' + r.quality) {
-                  <tr>
+                  <tr class="row-click" (click)="openHistory(r)" title="Ver flujo de mercado">
                     <td><span class="citydot" [style.background]="cityColor(r.city)"></span>{{ r.city }}</td>
                     <td>{{ qualityLabel(r.quality) }}</td>
                     @if (metricBuy()) {
@@ -239,6 +244,10 @@
         }
       }
     </div>
+  }
+
+  @if (historyFlip(); as f) {
+    <app-market-history [flip]="f" (close)="closeHistory()" />
   }
 
   <!-- ===== Recientes y favoritos ===== -->
