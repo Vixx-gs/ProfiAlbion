@@ -91,21 +91,23 @@ export class AlbionDataService {
   }
 
   /**
-   * Histórico de mercado de un item.
+   * Histórico de mercado de uno o varios items.
    * @param timeScale resolución en horas: 1 (horaria), 6, 24 (diaria).
    */
   getHistory(
-    itemId: string,
+    itemIds: string | string[],
     locations: string[],
     qualities: number[],
     timeScale = 1,
   ): Observable<HistoryEntry[]> {
-    const id = encodeURIComponent(itemId);
+    const ids = (Array.isArray(itemIds) ? itemIds : [itemIds])
+      .map((i) => encodeURIComponent(i))
+      .join(',');
     const params = [
       'locations=' + locations.map((l) => encodeURIComponent(l)).join(','),
       'qualities=' + qualities.join(','),
       'time-scale=' + timeScale,
     ];
-    return this.http.get<HistoryEntry[]>(`${this.base}/history/${id}.json?${params.join('&')}`);
+    return this.http.get<HistoryEntry[]>(`${this.base}/history/${ids}.json?${params.join('&')}`);
   }
 }

@@ -9,7 +9,7 @@ import {
 import { ALL_ITEMS, ENCHANTS, TIERS, displayName } from '../../core/items.catalog';
 import { MarketHistory } from './market-history/market-history';
 
-type SortKey = 'update' | 'profit' | 'margin';
+type SortKey = 'update' | 'profit' | 'margin' | 'volume';
 
 /** Opción del buscador: una variante de item (con tier y encantamiento). */
 interface ItemOption {
@@ -127,6 +127,7 @@ export class Flips {
     return [...arr].sort((a, b) => {
       if (by === 'profit') return b.profit - a.profit;
       if (by === 'margin') return b.marginPct - a.marginPct;
+      if (by === 'volume') return b.volume24h - a.volume24h;
       return this.time(b.updatedAt) - this.time(a.updatedAt);
     });
   });

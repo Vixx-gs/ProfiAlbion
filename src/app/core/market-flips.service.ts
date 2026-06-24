@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, from, map, mergeMap, of, scan, timeout, catchError } from 'rxjs';
-import { AlbionDataService, PriceEntry } from './albion-data.service';
+import { AlbionDataService, HistoryEntry, PriceEntry } from './albion-data.service';
 import { ITEM_CATALOG, ITEM_BY_ID, ENCHANTS, displayName } from './items.catalog';
 
 /** Una oportunidad de flip: comprar en una ciudad normal y vender en el Black Market. */
@@ -22,6 +22,8 @@ export interface MarketFlip {
   marginPct: number;
   /** Fecha del dato más antiguo usado (para "última actualización"). */
   updatedAt: string;
+  /** Unidades vendidas en el Black Market en las últimas 24h (flujo de venta). */
+  volume24h: number;
 }
 
 /** Parámetros del escaneo (panel "Fetch Flips"). */
@@ -77,25 +79,49 @@ export class MarketFlipsService {
     const locations = AlbionDataService.CITIES;
 
     const CHUNK = 40;
-    const reqs: { ids: string[]; qualities: number[] }[] = [];
+    type Req = { kind: 'price' | 'volume'; ids: string[] };
+    const reqs: Req[] = [];
+    // Precio y flujo de venta del MISMO lote de items intercalados: mergeMap
+    // respeta el orden de llegada, así que si fueran todos los de precio
+    // primero, el flujo de venta no empezaría a llegar hasta acabar el
+    // escaneo entero de precios (con miles de items, tardaría minutos).
     for (let i = 0; i < itemIds.length; i += CHUNK) {
-      reqs.push({ ids: itemIds.slice(i, i + CHUNK), qualities: params.qualities });
+      const ids = itemIds.slice(i, i + CHUNK);
+      reqs.push({ kind: 'price', ids });
+      reqs.push({ kind: 'volume', ids });
     }
 
-    // Un único flujo con tope de concurrencia: se acumulan los precios y se
-    // emite un resultado parcial tras CADA lote, así la tabla aparece enseguida
-    // y va creciendo en vez de esperar a que termine todo el escaneo.
+    interface Acc {
+      prices: PriceEntry[];
+      history: HistoryEntry[];
+    }
+
+    // Un único flujo con tope de concurrencia (precios + flujo de venta
+    // comparten el mismo cupo, para no exceder el límite de conexiones del
+    // navegador). Se emite un resultado parcial tras CADA lote.
     return from(reqs).pipe(
-      mergeMap(
-        (req) =>
-          this.api.getPrices(req.ids, locations, req.qualities).pipe(
-            timeout(this.REQUEST_TIMEOUT),
-            catchError(() => of([] as PriceEntry[])),
-          ),
-        this.CONCURRENCY,
+      mergeMap((req) => {
+        const obs: Observable<{ kind: 'price' | 'volume'; data: PriceEntry[] | HistoryEntry[] }> =
+          req.kind === 'price'
+            ? this.api
+                .getPrices(req.ids, locations, params.qualities)
+                .pipe(map((data) => ({ kind: 'price' as const, data })))
+            : this.api
+                .getHistory(req.ids, ['Black Market'], params.qualities, 24)
+                .pipe(map((data) => ({ kind: 'volume' as const, data })));
+        return obs.pipe(
+          timeout(this.REQUEST_TIMEOUT),
+          catchError(() => of({ kind: req.kind, data: [] as (PriceEntry | HistoryEntry)[] })),
+        );
+      }, this.CONCURRENCY),
+      scan(
+        (acc, res): Acc =>
+          res.kind === 'price'
+            ? { prices: acc.prices.concat(res.data as PriceEntry[]), history: acc.history }
+            : { prices: acc.prices, history: acc.history.concat(res.data as HistoryEntry[]) },
+        { prices: [], history: [] } as Acc,
       ),
-      scan((acc, batch) => acc.concat(batch), [] as PriceEntry[]),
-      map((entries) => this.buildResult(entries, params)),
+      map((acc) => this.buildResult(acc.prices, acc.history, params)),
     );
   }
 
@@ -168,9 +194,21 @@ export class MarketFlipsService {
     return byId;
   }
 
+  /** Unidades vendidas en las últimas 24h por item_id+calidad (histórico diario). */
+  private indexVolume(entries: HistoryEntry[]): Map<string, number> {
+    const byKey = new Map<string, number>();
+    for (const h of entries) {
+      const last = h.data[h.data.length - 1];
+      if (!last) continue;
+      byKey.set(`${h.item_id}|${h.quality}`, last.item_count);
+    }
+    return byKey;
+  }
+
   /** Construye el resultado completo (flips directos). */
-  private buildResult(entries: PriceEntry[], params: ScanParams): FlipResult {
+  private buildResult(entries: PriceEntry[], history: HistoryEntry[], params: ScanParams): FlipResult {
     const byId = this.indexFresh(entries, AlbionDataService.CITIES);
+    const volumeByKey = this.indexVolume(history);
     const flips: MarketFlip[] = [];
     let analysed = 0;
 
@@ -181,7 +219,7 @@ export class MarketFlipsService {
         // --- Flip directo: comprar en cualquier ciudad y vender en Black Market ---
         for (const e of ENCHANTS) {
           const id = e === 0 ? item.id : `${item.id}@${e}`;
-          flips.push(...this.directFlips(id, q, byId, item.tier));
+          flips.push(...this.directFlips(id, q, byId, item.tier, volumeByKey));
           if (byId.has(id)) analysed++;
         }
       }
@@ -205,10 +243,12 @@ export class MarketFlipsService {
     quality: number,
     byId: Map<string, PriceEntry[]>,
     tier: number,
+    volumeByKey: Map<string, number>,
   ): MarketFlip[] {
     const list = (byId.get(id) ?? []).filter((e) => e.quality === quality);
     const black = list.find((e) => e.city === 'Black Market');
     if (!black) return [];
+    const volume24h = volumeByKey.get(`${id}|${quality}`) ?? 0;
 
     const out: MarketFlip[] = [];
     for (const buy of list) {
@@ -229,6 +269,7 @@ export class MarketFlipsService {
         profit,
         marginPct: +((profit / buy.sell_price_min) * 100).toFixed(2),
         updatedAt: this.oldest(buy.sell_price_min_date, black.sell_price_min_date),
+        volume24h,
       });
     }
     return out;
@@ -275,6 +316,8 @@ export class MarketFlipsService {
           profit,
           marginPct: +((profit / buyPrice) * 100).toFixed(2),
           updatedAt: this.oldest(cheapest.sell_price_min_date, black.sell_price_min_date),
+          // La home no pide histórico de volumen (mantiene el escaneo ligero).
+          volume24h: 0,
         });
       }
     }

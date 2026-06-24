@@ -99,6 +99,7 @@
           <option value="update" [selected]="sortBy() === 'update'">Última actualización</option>
           <option value="profit" [selected]="sortBy() === 'profit'">Beneficio por item</option>
           <option value="margin" [selected]="sortBy() === 'margin'">Margen de beneficio</option>
+          <option value="volume" [selected]="sortBy() === 'volume'">Mayor flujo de venta</option>
         </select>
       </label>
       <label class="f2 f2--slider">
@@ -161,6 +162,7 @@
               <th>Sell</th>
               <th class="num">Profit Per Item</th>
               <th class="num">Profit Margin</th>
+              <th class="num">Flujo (24h)</th>
               <th class="num">Actions</th>
             </tr>
           </thead>
@@ -214,6 +216,9 @@
                 </td>
                 <td class="num profit">+{{ f.profit | number: '1.0-0' }}</td>
                 <td class="num profit">{{ f.marginPct | number: '1.0-2' }} %</td>
+                <td class="num cell-dim">
+                  @if (f.volume24h) { {{ f.volume24h | number: '1.0-0' }} ud. } @else { — }
+                </td>
                 <td class="num">
                   <span class="actions">
                     <button class="act" [class.act--on]="isSaved(f)" type="button" title="Guardar" (click)="toggleSave(f, $event)">

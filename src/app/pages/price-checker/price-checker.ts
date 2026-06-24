@@ -146,6 +146,7 @@ export class PriceChecker {
       profit: 0,
       marginPct: 0,
       updatedAt: row.updatedAt ?? new Date().toISOString(),
+      volume24h: row.volumeUnits,
     });
   }
   closeHistory(): void {
