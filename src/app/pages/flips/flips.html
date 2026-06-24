@@ -105,7 +105,15 @@
       <label class="f2 f2--slider">
         <span class="f2__label">Profit Per Item Min</span>
         <span class="f2__sliderrow">
-          <input type="range" min="0" max="1000000" step="10000" [value]="minProfit()" (input)="setMinProfit($event.target)" />
+          <input
+            type="range"
+            min="0"
+            max="1000000"
+            step="10000"
+            [value]="minProfit()"
+            [style.--pct.%]="minProfitPct()"
+            (input)="setMinProfit($event.target)"
+          />
           <span class="f2__sliderval">{{ minProfit() | number: '1.0-0' }} <i>plata</i></span>
         </span>
       </label>

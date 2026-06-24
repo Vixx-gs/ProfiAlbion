@@ -64,6 +64,8 @@ export class Flips {
   readonly search = signal('');
   readonly sortBy = signal<SortKey>('update');
   readonly minProfit = signal(0);
+  /** Relleno del slider (0-100%), para pintar la barra de progreso. */
+  readonly minProfitPct = computed(() => (this.minProfit() / 1_000_000) * 100);
 
   /** Buscador: TODAS las variantes del juego (tier + encantamiento). */
   readonly itemOptions: ItemOption[] = ALL_ITEMS.flatMap((it) =>
