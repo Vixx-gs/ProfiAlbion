@@ -1,0 +1,348 @@
+/* ===== Hero ===== */
+.hero {
+  position: relative;
+  text-align: center;
+  padding: 100px 0 78px;
+  overflow: hidden;
+}
+/* Halo central animado tras el título */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  width: 760px;
+  height: 520px;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgba(245, 185, 66, 0.22), transparent 70%);
+  filter: blur(8px);
+  animation: floaty 7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(19, 24, 38, 0.7);
+  border: 1px solid var(--border-strong);
+  padding: 7px 16px;
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+  animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.hero__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--profit);
+  box-shadow: 0 0 0 0 var(--profit-glow);
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.hero__title {
+  margin: 28px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(58px, 9vw, 116px);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.02;
+  background: linear-gradient(180deg, #fff 8%, var(--gold-bright) 55%, var(--gold-deep) 105%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 24px rgba(245, 185, 66, 0.28));
+  animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+}
+.hero__subtitle {
+  max-width: 660px;
+  margin: 24px auto 0;
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--text-muted);
+  animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+.hero__actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 38px;
+  animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+/* ===== Botones ===== */
+.btn {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  padding: 13px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--bg-card);
+  transition: transform 0.18s, box-shadow 0.18s, background 0.18s, border-color 0.18s;
+  overflow: hidden;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(0); }
+.btn--sm { padding: 9px 15px; font-size: 13px; border-radius: 9px; }
+
+.btn--primary {
+  color: #1a1205;
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold-deep));
+  box-shadow: 0 8px 22px -8px var(--gold-glow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.btn--primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s;
+}
+.btn--primary:hover {
+  box-shadow: 0 12px 30px -8px var(--gold-glow), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.btn--primary:hover::before { left: 130%; }
+
+.btn--ghost {
+  background: rgba(19, 24, 38, 0.6);
+  border-color: var(--border-strong);
+  backdrop-filter: blur(6px);
+}
+.btn--ghost:hover {
+  background: var(--bg-hover);
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+
+/* ===== Tarjeta de flips ===== */
+.flips {
+  position: relative;
+  margin: 26px 0 0;
+  background: linear-gradient(180deg, rgba(19, 24, 38, 0.85), rgba(11, 14, 23, 0.9));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.28s both;
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.8);
+}
+/* Borde superior con degradado dorado */
+.flips::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  padding: 1px;
+  background: linear-gradient(120deg, transparent 30%, var(--gold-glow), transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.flips__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.flips__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+.flips__hint {
+  margin: 7px 0 0;
+  font-size: 13px;
+  color: var(--text-dim);
+  max-width: 640px;
+  line-height: 1.5;
+}
+.flips__state {
+  padding: 54px;
+  text-align: center;
+  color: var(--text-muted);
+  animation: fadeIn 0.4s both;
+}
+.flips__state--error { color: var(--danger); }
+
+/* ===== Tabla ===== */
+.table-wrap { overflow-x: auto; }
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table thead th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  font-weight: 700;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.table tbody td {
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.table tbody tr {
+  position: relative;
+  animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: background 0.18s;
+}
+/* Aparición escalonada de filas */
+.table tbody tr:nth-child(1) { animation-delay: 0.02s; }
+.table tbody tr:nth-child(2) { animation-delay: 0.06s; }
+.table tbody tr:nth-child(3) { animation-delay: 0.10s; }
+.table tbody tr:nth-child(4) { animation-delay: 0.14s; }
+.table tbody tr:nth-child(5) { animation-delay: 0.18s; }
+.table tbody tr:nth-child(6) { animation-delay: 0.22s; }
+.table tbody tr:nth-child(7) { animation-delay: 0.26s; }
+.table tbody tr:nth-child(8) { animation-delay: 0.30s; }
+.table tbody tr:hover { background: linear-gradient(90deg, var(--bg-hover), transparent 90%); }
+/* La fila con el bocadillo abierto se eleva sobre las demás para que no la tapen. */
+.table tbody tr:has(.pop) { z-index: 30; }
+/* Barra dorada al pasar el ratón */
+.table tbody td:first-child { box-shadow: inset 3px 0 0 transparent; transition: box-shadow 0.18s; }
+.table tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 var(--gold); }
+.table tbody tr:last-child td { border-bottom: none; }
+.num { text-align: right; }
+
+.cell-item {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.item-icon {
+  flex: none;
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  transition: transform 0.2s;
+}
+.table tbody tr:hover .item-icon { transform: scale(1.08); }
+.item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.item-name { font-weight: 700; }
+.item-quality {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.item-quality.q2 { color: #4ade80; }
+.item-quality.q3 { color: #38bdf8; }
+.item-quality.q4 { color: #c084fc; }
+.item-quality.q5 { color: var(--gold-bright); }
+
+.cell-dim { color: var(--text-dim); font-size: 13px; white-space: nowrap; }
+.freshdot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 7px;
+  vertical-align: middle;
+}
+.freshdot--fresh { background: var(--profit); box-shadow: 0 0 8px var(--profit-glow); }
+.freshdot--mid { background: var(--gold); box-shadow: 0 0 8px var(--gold-glow); }
+.freshdot--old { background: var(--danger); box-shadow: 0 0 8px rgba(240, 85, 107, 0.5); }
+
+.city {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.citydot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4); }
+.price { font-weight: 700; }
+.price i { font-style: normal; color: var(--text-dim); font-weight: 400; font-size: 12px; }
+.profit {
+  color: var(--profit);
+  font-weight: 800;
+  text-shadow: 0 0 18px var(--profit-glow);
+}
+
+/* Celda de venta con desplegable de compra instantánea */
+.sell-price {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.pop-toggle {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+.pop-toggle:hover { background: var(--bg-hover); color: var(--gold-bright); border-color: var(--gold); }
+
+.pop {
+  position: absolute;
+  top: calc(100% + 9px);
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 180px;
+  padding: 11px 13px;
+  background: linear-gradient(180deg, var(--bg-elevated), var(--bg-2));
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 22px -8px var(--gold-glow);
+  animation: fadeUp 0.18s ease both;
+}
+.pop::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 16px;
+  width: 10px;
+  height: 10px;
+  background: var(--bg-elevated);
+  border-left: 1px solid var(--gold);
+  border-top: 1px solid var(--gold);
+  transform: rotate(45deg);
+}
+.pop__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gold);
+  font-weight: 700;
+}
+.pop__price { font-weight: 800; color: var(--text); }
+.pop__price i { font-style: normal; color: var(--text-dim); font-weight: 400; font-size: 12px; }
+.pop__empty { font-size: 13px; color: var(--text-dim); }
+
+.flips__foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 24px;
+}
