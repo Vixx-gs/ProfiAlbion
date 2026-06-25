@@ -14,5 +14,10 @@ export const routes: Routes = [
       import('./pages/price-checker/price-checker').then((m) => m.PriceChecker),
     title: 'Comprobador de precios · ProfiAlbion',
   },
+  {
+    path: 'maestrias',
+    loadComponent: () => import('./pages/masteries/masteries').then((m) => m.Masteries),
+    title: 'Gestión de maestrías · ProfiAlbion',
+  },
   { path: '**', redirectTo: '' },
 ];

@@ -178,18 +178,23 @@
 }
 .menu__rich-icon {
   flex: none;
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
-  background: radial-gradient(circle at 30% 25%, var(--bg-hover), var(--bg-2));
-  border: 1px solid var(--border-strong);
+  width: 38px;
+  height: 38px;
   object-fit: contain;
-  padding: 2px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, filter 0.2s;
 }
 .menu__rich-link:hover .menu__rich-icon {
   transform: scale(1.1);
-  box-shadow: 0 0 14px -2px var(--gold-glow);
+  filter: drop-shadow(0 0 8px var(--gold-glow));
+}
+.menu__rich-icon--svg {
+  display: grid;
+  place-items: center;
+  color: var(--gold-bright);
+}
+.menu__rich-icon--svg svg {
+  width: 32px;
+  height: 32px;
 }
 .menu__rich-label {
   flex: 1;
