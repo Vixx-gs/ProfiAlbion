@@ -327,6 +327,44 @@
   color: var(--danger);
 }
 
+.result-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.result-card--full {
+  width: 100%;
+}
+
+.roi-negative {
+  border-color: var(--danger) !important;
+}
+
+.roi-high {
+  border-color: var(--profit) !important;
+}
+
+.result-row .result-card:not(.roi-negative):not(.roi-high) {
+  border-color: var(--gold-deep);
+}
+
+.result-card__value--row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  width: 100%;
+}
+
+.result-card__value--row i {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+
 .result-detail {
   display: flex;
   flex-direction: column;
