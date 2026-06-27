@@ -4,7 +4,13 @@
   <button class="mh__close" type="button" title="Cerrar" (click)="onClose()">✕</button>
 
   <header class="mh__head">
-    <img class="mh__icon" [src]="iconUrl()" [alt]="flip().name" width="48" height="48" />
+    @if (activeWikiRoute(); as route) {
+      <a class="mh__icon-link" [href]="route" target="_blank" rel="noopener" title="Abrir en Wiki">
+        <img class="mh__icon" [src]="iconUrl()" [alt]="flip().name" width="48" height="48" />
+      </a>
+    } @else {
+      <img class="mh__icon" [src]="iconUrl()" [alt]="flip().name" width="48" height="48" />
+    }
     <div>
       <h3 class="mh__title">{{ flip().name }}</h3>
       <p class="mh__sub">Historial de mercado · {{ cityName() }}</p>

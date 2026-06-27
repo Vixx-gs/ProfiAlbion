@@ -48,6 +48,10 @@ export class MarketHistory implements OnInit {
   readonly toggleItemId = input<string>('');
   /** Etiqueta del item secundario (ej: "Cultivo"). */
   readonly toggleLabel = input<string>('');
+  /** Ruta wiki para el item principal (se abre al hacer click en el icono). */
+  readonly wikiRoute = input<string>('');
+  /** Ruta wiki para el item secundario (toggle). */
+  readonly wikiRouteToggle = input<string>('');
   /** Cerrar el modal. */
   readonly close = output<void>();
 
@@ -221,6 +225,11 @@ export class MarketHistory implements OnInit {
   /** ID del item actual según el toggle. */
   readonly currentItemId = computed<string>(() =>
     this.showingRelated() ? this.toggleItemId() : this.flip().itemId,
+  );
+
+  /** Ruta wiki activa según el toggle. */
+  readonly activeWikiRoute = computed(() =>
+    this.showingRelated() ? this.wikiRouteToggle() : this.wikiRoute(),
   );
 
   setShowingRelated(v: boolean): void {
