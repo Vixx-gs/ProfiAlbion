@@ -1,10 +1,7 @@
 <section class="container page">
   <div class="hero-sm">
     <h1 class="hero-sm__title">Calculadora de Cultivos</h1>
-    <p class="hero-sm__subtitle">
-      Calcula el profit de cultivar en tu isla. Selecciona el cultivo, ajusta
-      los precios del mercado y obtén el beneficio neto por cosecha.
-    </p>
+    <p class="hero-sm__subtitle">Calcula el profit de cultivar en tu isla. Selecciona el cultivo, ajusta los precios del mercado y obtén el beneficio neto por cosecha.</p>
   </div>
 
   <div class="calc-layout">
@@ -71,7 +68,7 @@
 
       <!-- Ciudad de mercado -->
       <div class="panel-section">
-        <h2 class="panel-section__title">Mercado (comprar/vender)</h2>
+        <h2 class="panel-section__title">Mercado</h2>
         <div class="city-options">
           @for (city of marketCities; track city) {
             <button
@@ -116,7 +113,7 @@
         </label>
 
         <label class="field">
-          <span class="field__label">Precio venta cosecha</span>
+          <span class="field__label">Precio venta cultivo unidad</span>
           <input class="field__input" type="number" min="0" [ngModel]="yieldPrice()" (ngModelChange)="yieldPrice.set($event)" placeholder="0" />
         </label>
 
@@ -177,7 +174,7 @@
         <div class="result-card"
           [class.roi-negative]="result().bestRoi < 0"
           [class.roi-high]="result().bestRoi > 70">
-          <span class="result-card__label">Mejor caso de rendimiento del producto</span>
+          <span class="result-card__label">Mejor caso de rendimiento del producto <em>(semillas no incluidas)</em></span>
           <span class="result-card__value result-card__value--row">
             <span>{{ result().bestTotalIncome | number:'1.0-0' }} <i>Ingreso total</i></span>
             <span [class.result-card--negative]="result().bestProfit < 0">
@@ -189,7 +186,7 @@
         <div class="result-card"
           [class.roi-negative]="result().worstRoi < 0"
           [class.roi-high]="result().worstRoi > 70">
-          <span class="result-card__label">Peor caso de rendimiento del producto</span>
+          <span class="result-card__label">Peor caso de rendimiento del producto <em>(semillas no incluidas)</em></span>
           <span class="result-card__value result-card__value--row">
             <span>{{ result().worstTotalIncome | number:'1.0-0' }} <i>Ingreso total</i></span>
             <span [class.result-card--negative]="result().worstProfit < 0">
@@ -197,7 +194,7 @@
             </span>
             <span>{{ result().worstRoi | number:'1.1-1' }} % <i>ROI</i></span>
           </span>
-        </div>
+          </div>
       </div>
 
       <div class="result-detail">
@@ -210,7 +207,7 @@
             <span>{{ result().seedsBackWorst | number:'1.0-0' }} – {{ result().seedsBack | number:'1.0-0' }}</span>
           </div>
           <div class="result-detail__row">
-            <span>Cosecha total (uds.)</span>
+            <span>Cosecha total</span>
             <span>{{ result().worstGrossYield | number:'1.0-0' }} – {{ result().bestGrossYield | number:'1.0-0' }}</span>
           </div>
         @if (focus()) {

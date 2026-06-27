@@ -19,9 +19,9 @@ interface CropDef {
 
 const CROPS: CropDef[] = [
   { id: 'CARROT', name: 'Zanahoria', iconId: 'T1_FARM_CARROT_SEED', harvestId: 'T1_CARROT', defaultSeedPrice: 2312, seedsPerHarvest: 0, yieldPerHarvest: 4.5, growHours: 22, focusCost: 0, focusBonus: 2.0 },
-  { id: 'BEAN', name: 'Judía', iconId: 'T2_FARM_BEAN_SEED', harvestId: 'T2_BEAN', defaultSeedPrice: 3468, seedsPerHarvest: 0.3333, yieldPerHarvest: 4.5, growHours: 10, focusCost: 0, focusBonus: 1.33 },
+  { id: 'BEAN', name: 'Frijoles', iconId: 'T2_FARM_BEAN_SEED', harvestId: 'T2_BEAN', defaultSeedPrice: 3468, seedsPerHarvest: 0.3333, yieldPerHarvest: 4.5, growHours: 10, focusCost: 0, focusBonus: 1.33 },
   { id: 'WHEAT', name: 'Trigo', iconId: 'T3_FARM_WHEAT_SEED', harvestId: 'T3_WHEAT', defaultSeedPrice: 5780, seedsPerHarvest: 0.6, yieldPerHarvest: 4.5, growHours: 14, focusCost: 0, focusBonus: 0.8 },
-  { id: 'TURNIP', name: 'Nabo', iconId: 'T4_FARM_TURNIP_SEED', harvestId: 'T4_TURNIP', defaultSeedPrice: 8670, seedsPerHarvest: 0.7333, yieldPerHarvest: 4.5, growHours: 12, focusCost: 0, focusBonus: 0.53 },
+  { id: 'TURNIP', name: 'Rábano', iconId: 'T4_FARM_TURNIP_SEED', harvestId: 'T4_TURNIP', defaultSeedPrice: 8670, seedsPerHarvest: 0.7333, yieldPerHarvest: 4.5, growHours: 12, focusCost: 0, focusBonus: 0.53 },
   { id: 'CABBAGE', name: 'Col', iconId: 'T5_FARM_CABBAGE_SEED', harvestId: 'T5_CABBAGE', defaultSeedPrice: 11560, seedsPerHarvest: 0.8, yieldPerHarvest: 4.5, growHours: 16, focusCost: 0, focusBonus: 0.4 },
   { id: 'POTATO', name: 'Patata', iconId: 'T6_FARM_POTATO_SEED', harvestId: 'T6_POTATO', defaultSeedPrice: 17340, seedsPerHarvest: 0.8667, yieldPerHarvest: 4.5, growHours: 18, focusCost: 0, focusBonus: 0.27 },
   { id: 'CORN', name: 'Maíz', iconId: 'T7_FARM_CORN_SEED', harvestId: 'T7_CORN', defaultSeedPrice: 26010, seedsPerHarvest: 0.9111, yieldPerHarvest: 4.5, growHours: 20, focusCost: 0, focusBonus: 0.18 },
@@ -29,13 +29,13 @@ const CROPS: CropDef[] = [
 ];
 
 const HERBS: CropDef[] = [
-  { id: 'AGARIC', name: 'Agaric arcano', iconId: 'T2_FARM_AGARIC_SEED', harvestId: 'T2_AGARIC', defaultSeedPrice: 3468, seedsPerHarvest: 0.3333, yieldPerHarvest: 4.5, growHours: 20, focusCost: 0, focusBonus: 1.33 },
-  { id: 'COMFREY', name: 'Consuelda bril.', iconId: 'T3_FARM_COMFREY_SEED', harvestId: 'T3_COMFREY', defaultSeedPrice: 5780, seedsPerHarvest: 0.6, yieldPerHarvest: 4.5, growHours: 20, focusCost: 0, focusBonus: 0.8 },
-  { id: 'BURDOCK', name: 'Bardana crespa', iconId: 'T4_FARM_BURDOCK_SEED', harvestId: 'T4_BURDOCK', defaultSeedPrice: 8670, seedsPerHarvest: 0.7333, yieldPerHarvest: 4.5, growHours: 20, focusCost: 0, focusBonus: 0.53 },
-  { id: 'TEASEL', name: 'Cardo dragón', iconId: 'T5_FARM_TEASEL_SEED', harvestId: 'T5_TEASEL', defaultSeedPrice: 11560, seedsPerHarvest: 0.8, yieldPerHarvest: 4.5, growHours: 20, focusCost: 0, focusBonus: 0.4 },
-  { id: 'FOXGLOVE', name: 'Digital evasiva', iconId: 'T6_FARM_FOXGLOVE_SEED', harvestId: 'T6_FOXGLOVE', defaultSeedPrice: 17340, seedsPerHarvest: 0.8667, yieldPerHarvest: 4.5, growHours: 20, focusCost: 0, focusBonus: 0.27 },
+  { id: 'AGARIC', name: 'Agárico arcano', iconId: 'T2_FARM_AGARIC_SEED', harvestId: 'T2_AGARIC', defaultSeedPrice: 3468, seedsPerHarvest: 0.3333, yieldPerHarvest: 4.5, growHours: 20, focusCost: 0, focusBonus: 1.33 },
+  { id: 'COMFREY', name: 'Consuelda hojabrillante', iconId: 'T3_FARM_COMFREY_SEED', harvestId: 'T3_COMFREY', defaultSeedPrice: 5780, seedsPerHarvest: 0.6, yieldPerHarvest: 4.5, growHours: 20, focusCost: 0, focusBonus: 0.8 },
+  { id: 'BURDOCK', name: 'Bardana almenada', iconId: 'T4_FARM_BURDOCK_SEED', harvestId: 'T4_BURDOCK', defaultSeedPrice: 8670, seedsPerHarvest: 0.7333, yieldPerHarvest: 4.5, growHours: 20, focusCost: 0, focusBonus: 0.53 },
+  { id: 'TEASEL', name: 'Cardo de dragón', iconId: 'T5_FARM_TEASEL_SEED', harvestId: 'T5_TEASEL', defaultSeedPrice: 11560, seedsPerHarvest: 0.8, yieldPerHarvest: 4.5, growHours: 20, focusCost: 0, focusBonus: 0.4 },
+  { id: 'FOXGLOVE', name: 'Dedalera elusiva', iconId: 'T6_FARM_FOXGLOVE_SEED', harvestId: 'T6_FOXGLOVE', defaultSeedPrice: 17340, seedsPerHarvest: 0.8667, yieldPerHarvest: 4.5, growHours: 20, focusCost: 0, focusBonus: 0.27 },
   { id: 'MULLEIN', name: 'Gordolobo ígneo', iconId: 'T7_FARM_MULLEIN_SEED', harvestId: 'T7_MULLEIN', defaultSeedPrice: 26010, seedsPerHarvest: 0.9111, yieldPerHarvest: 4.5, growHours: 20, focusCost: 0, focusBonus: 0.18 },
-  { id: 'YARROW', name: 'Milenrama ghoul', iconId: 'T8_FARM_YARROW_SEED', harvestId: 'T8_YARROW', defaultSeedPrice: 34680, seedsPerHarvest: 0.9333, yieldPerHarvest: 4.5, growHours: 20, focusCost: 0, focusBonus: 0.13 },
+  { id: 'YARROW', name: 'Milenrama demoníaca', iconId: 'T8_FARM_YARROW_SEED', harvestId: 'T8_YARROW', defaultSeedPrice: 34680, seedsPerHarvest: 0.9333, yieldPerHarvest: 4.5, growHours: 20, focusCost: 0, focusBonus: 0.13 },
 ];
 
 const PLANT_CITIES = [
@@ -156,8 +156,8 @@ export class Farming {
     const yieldRangeMin = Math.floor(3 * premiumMult * biomeBonus);
     const yieldRangeMax = Math.ceil(6 * premiumMult * biomeBonus);
 
-    const worstGrossYield = Math.floor(3 * n * premiumMult * biomeBonus);
-    const bestGrossYield = Math.ceil(6 * n * premiumMult * biomeBonus);
+    const worstGrossYield = yieldRangeMin * n;
+    const bestGrossYield = yieldRangeMax * n;
     const worstIncomeYield = Math.round(worstGrossYield * yieldPrice);
     const bestIncomeYield = Math.round(bestGrossYield * yieldPrice);
 
@@ -169,13 +169,11 @@ export class Farming {
     const profit = totalIncome - totalCost;
     const roi = totalCost > 0 ? (profit / totalCost) * 100 : 0;
 
-    const worstIncomeSeeds = Math.round(seedsBackWorst * seedPrice * 0.6);
-    const bestIncomeSeeds = Math.round(seedsBack * seedPrice * 0.6);
-    const worstTotalIncome = worstIncomeSeeds + worstIncomeYield;
+    const worstTotalIncome = worstIncomeYield;
     const worstProfit = worstTotalIncome - totalCost;
     const worstRoi = totalCost > 0 ? (worstProfit / totalCost) * 100 : 0;
 
-    const bestTotalIncome = bestIncomeSeeds + bestIncomeYield;
+    const bestTotalIncome = bestIncomeYield;
     const bestProfit = bestTotalIncome - totalCost;
     const bestRoi = totalCost > 0 ? (bestProfit / totalCost) * 100 : 0;
 

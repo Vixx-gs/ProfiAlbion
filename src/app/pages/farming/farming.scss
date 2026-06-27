@@ -22,8 +22,9 @@
   font-size: 15px;
   color: var(--text-muted);
   margin: 0;
-  max-width: 660px;
+  max-width: 100%;
   line-height: 1.55;
+  white-space: nowrap;
 }
 
 .calc-layout {
@@ -306,6 +307,14 @@
   color: var(--text-dim);
 }
 
+.result-card__label em {
+  float: right;
+  font-size: 9px;
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 .result-card__value {
   font-size: 20px;
   font-weight: 800;
@@ -332,10 +341,12 @@
   flex-direction: column;
   gap: 12px;
   width: 100%;
+  margin-bottom: 12px;
 }
 
 .result-card--full {
   width: 100%;
+  margin-bottom: 12px;
 }
 
 .roi-negative {
