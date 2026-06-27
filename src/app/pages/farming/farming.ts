@@ -2,6 +2,8 @@ import { Component, DestroyRef, computed, effect, inject, signal } from '@angula
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AlbionDataService } from '../../core/albion-data.service';
+import { MarketFlip } from '../../core/market-flips.service';
+import { MarketHistory } from '../flips/market-history/market-history';
 import { Subject, Subscription, catchError, debounceTime, of, switchMap, timeout } from 'rxjs';
 
 interface CropDef {
@@ -72,7 +74,7 @@ type FarmingTab = 'crops' | 'herbs';
 
 @Component({
   selector: 'app-farming',
-  imports: [DecimalPipe, FormsModule],
+  imports: [DecimalPipe, FormsModule, MarketHistory],
   templateUrl: './farming.html',
   styleUrl: './farming.scss',
 })
@@ -97,6 +99,7 @@ export class Farming {
   readonly focusPrice = signal(30);
   readonly focusCostInput = signal(CROPS[0].focusCost);
   readonly yieldPrice = signal(0);
+  readonly harvestDates = signal<Record<string, string>>({});
 
   readonly plantCity = signal(PLANT_CITIES[0]);
   readonly marketCity = signal(MARKET_CITIES[0]);
@@ -113,24 +116,33 @@ export class Farming {
     this.priceSub = this.fetchTrigger.pipe(
       debounceTime(100),
       switchMap(() => {
-        const item = this.currentSelected();
+        const items = this.currentItems();
         const city = this.marketCity();
-        if (!item) return of(null);
-        return this.api.getPrices([item.iconId, item.harvestId], [city], []).pipe(
+        if (!items.length) return of(null);
+        return this.api.getPrices(items.map(i => i.harvestId), [city], []).pipe(
           timeout(10000),
           catchError(() => of(null)),
         );
       }),
     ).subscribe((result) => {
       if (!result) return;
+      const dates: Record<string, string> = {};
+      for (const p of result) {
+        if (!dates[p.item_id] || p.sell_price_min_date > dates[p.item_id]) {
+          dates[p.item_id] = p.sell_price_min_date;
+        }
+      }
+      this.harvestDates.set(dates);
       const harvestEntry = result.find((p) => p.item_id === this.currentSelected()?.harvestId);
       if (harvestEntry?.sell_price_min) this.yieldPrice.set(harvestEntry.sell_price_min);
     });
 
-    destroyRef.onDestroy(() => this.priceSub.unsubscribe());
+    destroyRef.onDestroy(() => {
+      this.priceSub.unsubscribe();
+    });
 
     effect(() => {
-      this.currentSelected();
+      this.currentItems();
       this.marketCity();
       this.fetchTrigger.next();
     });
@@ -210,6 +222,43 @@ export class Farming {
       biomeBonus,
     };
   });
+
+  // ===== Modal de historial de mercado (doble click en semilla) =====
+  readonly historyCrop = signal<MarketFlip | null>(null);
+  readonly historyIconId = signal('');
+
+  openHistory(item: CropDef): void {
+    this.historyIconId.set(item.iconId);
+    this.historyCrop.set({
+      itemId: item.iconId,
+      name: item.name,
+      tier: 0,
+      quality: 1,
+      buyCity: this.marketCity(),
+      buyPrice: 0,
+      sellCity: this.marketCity(),
+      sellPrice: 0,
+      sellBuyMax: 0,
+      profit: 0,
+      marginPct: 0,
+      updatedAt: new Date().toISOString(),
+      volume24h: 0,
+    });
+  }
+
+  closeHistory(): void {
+    this.historyCrop.set(null);
+    this.historyIconId.set('');
+  }
+
+  ago(iso: string): string {
+    if (!iso) return '';
+    const min = Math.max(0, Math.round((Date.now() - new Date(iso + 'Z').getTime()) / 60000));
+    if (min < 60) return `hace ${min} min`;
+    const h = Math.round(min / 60);
+    if (h < 24) return `hace ${h} h`;
+    return `hace ${Math.round(h / 24)} d`;
+  }
 
   cityColor(city: string): string {
     return CITY_COLORS[city] ?? 'var(--text-dim)';

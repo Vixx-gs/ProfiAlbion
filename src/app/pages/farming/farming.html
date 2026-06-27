@@ -32,6 +32,7 @@
               type="button"
               [class.crop-opt--active]="currentSelected().id === item.id"
               (click)="selectItem(item)"
+              (dblclick)="openHistory(item)"
             >
               <img
                 class="crop-opt__icon"
@@ -42,7 +43,7 @@
                 height="56"
               />
               <span class="crop-opt__name">{{ item.name }}</span>
-              <span class="crop-opt__meta">{{ item.growHours }} h</span>
+              <span class="crop-opt__meta">{{ ago(harvestDates()[item.harvestId] ?? '') }}</span>
             </button>
           }
         </div>
@@ -116,7 +117,6 @@
           <span class="field__label">Precio venta cultivo unidad</span>
           <input class="field__input" type="number" min="0" [ngModel]="yieldPrice()" (ngModelChange)="yieldPrice.set($event)" placeholder="0" />
         </label>
-
       </div>
     </div>
 
@@ -221,3 +221,14 @@
     </div>
   </div>
 </section>
+
+@if (historyCrop(); as flip) {
+  <app-market-history
+    [flip]="flip"
+    [iconId]="historyIconId()"
+    [citiesInput]="marketCities"
+    [toggleItemId]="currentSelected().harvestId"
+    toggleLabel="Cultivo"
+    (close)="closeHistory()"
+  />
+}
