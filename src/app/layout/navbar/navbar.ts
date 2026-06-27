@@ -67,7 +67,6 @@ export class Navbar {
             { label: 'Historial del precio del oro', iconId: 'T4_SKILLBOOK_STANDARD' },
             { label: 'Planificador de crafteo', iconId: 'T8_2H_HAMMER', shortcut: 'Ctrl + 7' },
             { label: 'Gestión de maestrías', iconId: 'T8_RUNE', route: '/maestrias' },
-            { label: 'Wiki de cultivos y semillas', iconId: 'T8_PUMPKIN', route: '/wiki' },
           ],
         },
       ],

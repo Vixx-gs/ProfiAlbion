@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { AlbionDataService } from '../../core/albion-data.service';
 import { MarketFlip } from '../../core/market-flips.service';
 import { MarketHistory } from '../flips/market-history/market-history';
-import { harvestIdToFolder } from '../wiki/wiki-data';
 import { Subject, Subscription, catchError, debounceTime, of, switchMap, timeout } from 'rxjs';
 
 interface CropDef {
@@ -100,7 +99,6 @@ export class Farming {
   readonly focusPrice = signal(30);
   readonly focusCostInput = signal(CROPS[0].focusCost);
   readonly yieldPrice = signal(0);
-  readonly harvestPrices = signal<Record<string, number>>({});
   readonly harvestDates = signal<Record<string, string>>({});
 
   readonly plantCity = signal(PLANT_CITIES[0]);
@@ -108,26 +106,6 @@ export class Farming {
 
   readonly currentItems = computed(() => this.tab() === 'crops' ? this.crops : this.herbs);
   readonly currentSelected = computed(() => this.tab() === 'crops' ? this.selCrop() : this.selHerb());
-
-  /** Categoría wiki (agricultor / herborista) según la pestaña activa. */
-  readonly wikiCategory = computed(() => (this.tab() === 'crops' ? 'agricultor' : 'herborista'));
-
-  /** Nombre de carpeta wiki (ej: T1_Zanahoria). */
-  readonly wikiFolder = computed(() => harvestIdToFolder(this.currentSelected().harvestId));
-
-  /** Ruta wiki de la semilla. */
-  readonly wikiSeedRoute = computed(() => {
-    const cat = this.wikiCategory();
-    const f = this.wikiFolder();
-    return `/wiki/semillas/${cat}/Semilla_${f}`;
-  });
-
-  /** Ruta wiki del cultivo cosechado. */
-  readonly wikiHarvestRoute = computed(() => {
-    const cat = this.wikiCategory();
-    const f = this.wikiFolder();
-    return `/wiki/cultivos/${cat}/${f}`;
-  });
 
   private readonly fetchTrigger = new Subject<void>();
   private readonly priceSub: Subscription;
@@ -148,23 +126,15 @@ export class Farming {
       }),
     ).subscribe((result) => {
       if (!result) return;
-      const prices: Record<string, number> = {};
       const dates: Record<string, string> = {};
       for (const p of result) {
-        if (p.sell_price_min) {
-          const existing = prices[p.item_id];
-          if (!existing || (p.sell_price_min_date && p.sell_price_min_date > (dates[p.item_id] ?? ''))) {
-            prices[p.item_id] = p.sell_price_min;
-          }
-        }
         if (!dates[p.item_id] || p.sell_price_min_date > dates[p.item_id]) {
           dates[p.item_id] = p.sell_price_min_date;
         }
       }
-      this.harvestPrices.set(prices);
       this.harvestDates.set(dates);
-      const sel = this.currentSelected();
-      if (sel && prices[sel.harvestId]) this.yieldPrice.set(prices[sel.harvestId]);
+      const harvestEntry = result.find((p) => p.item_id === this.currentSelected()?.harvestId);
+      if (harvestEntry?.sell_price_min) this.yieldPrice.set(harvestEntry.sell_price_min);
     });
 
     destroyRef.onDestroy(() => {
@@ -175,14 +145,6 @@ export class Farming {
       this.currentItems();
       this.marketCity();
       this.fetchTrigger.next();
-    });
-
-    effect(() => {
-      const sel = this.currentSelected();
-      const prices = this.harvestPrices();
-      if (sel && prices[sel.harvestId]) {
-        this.yieldPrice.set(prices[sel.harvestId]);
-      }
     });
   }
 

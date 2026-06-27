@@ -64,16 +64,6 @@
   object-fit: contain;
   padding: 2px;
 }
-.mh__icon-link {
-  display: inline-flex;
-  line-height: 0;
-  text-decoration: none;
-  transition: opacity 0.12s;
-
-  &:hover {
-    opacity: 0.8;
-  }
-}
 .mh__title {
   margin: 0;
   font-size: 18px;

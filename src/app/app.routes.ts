@@ -24,16 +24,5 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/masteries/masteries').then((m) => m.Masteries),
     title: 'Gestión de maestrías · ProfiAlbion',
   },
-  {
-    path: 'wiki',
-    loadComponent: () => import('./pages/wiki/wiki').then((m) => m.Wiki),
-    title: 'Wiki · ProfiAlbion',
-    children: [
-      {
-        path: ':section/:category/:item',
-        loadComponent: () => import('./pages/wiki/wiki-item').then((m) => m.WikiItem),
-      },
-    ],
-  },
   { path: '**', redirectTo: '' },
 ];
