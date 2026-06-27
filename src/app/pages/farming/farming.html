@@ -130,8 +130,8 @@
         <h2 class="panel-section__title">{{ currentSelected().name }}</h2>
         <div class="result-detail">
           <div class="result-detail__row">
-            <span>Rendimiento de semilla base</span>
-            <span>{{ currentSelected().seedsPerHarvest * 100 | number:'1.1-1' }} %</span>
+            <span>Producción de semilla</span>
+            <span>{{ currentSelected().seedsPerHarvest }} / parcela</span>
           </div>
           <div class="result-detail__row">
             <span>Bono de isla</span>
@@ -139,7 +139,7 @@
           </div>
           <div class="result-detail__row">
             <span>Bono diario de riego</span>
-            <span>{{ focus() ? (currentSelected().focusBonus * 100 | number:'1.0-0') : '0' }} %</span>
+            <span>{{ focus() ? '30' : '0' }} %</span>
           </div>
           <div class="result-detail__row">
             <span>Coste diario de riego (foco)</span>
@@ -147,11 +147,11 @@
           </div>
           <div class="result-detail__row">
             <span>Rendimiento del producto</span>
-            <span>{{ result().yieldRangeMin }} – {{ result().yieldRangeMax }} / parcela</span>
+            <span>{{ currentSelected().yieldPerHarvest * (premium() ? 2 : 1) * result().biomeBonus | number:'1.1-1' }} / parcela</span>
           </div>
           <div class="result-detail__row">
             <span>Rendimiento de semillas (total)</span>
-            <span>{{ (currentSelected().seedsPerHarvest + (focus() ? currentSelected().focusBonus : 0)) * 100 | number:'1.1-1' }} %</span>
+            <span>{{ (currentSelected().seedsPerHarvest * 0.7 * (premium() ? 2 : 1) * (focus() ? 1.3 : 1)) | number:'1.1-1' }} / parcela</span>
           </div>
         </div>
       </div>
@@ -169,34 +169,24 @@
         </div>
       </div>
 
-      <div class="result-card result-card--full">
-        <span class="result-card__label">Inversión total</span>
-        <span class="result-card__value">{{ result().totalCost | number:'1.0-0' }} <i>plata</i></span>
-      </div>
-      <div class="result-row">
-        <div class="result-card"
-          [class.roi-negative]="result().bestRoi < 0"
-          [class.roi-high]="result().bestRoi > 70">
-          <span class="result-card__label">Mejor caso de rendimiento del producto</span>
-          <span class="result-card__value result-card__value--row">
-            <span>{{ result().bestTotalIncome | number:'1.0-0' }} <i>Ingreso total</i></span>
-            <span [class.result-card--negative]="result().bestProfit < 0">
-              {{ result().bestProfit >= 0 ? '+' : '' }}{{ result().bestProfit | number:'1.0-0' }} <i>Beneficio neto</i>
-            </span>
-            <span>{{ result().bestRoi | number:'1.1-1' }} % <i>ROI</i></span>
+      <div class="result-grid">
+        <div class="result-card">
+          <span class="result-card__label">Inversión total</span>
+          <span class="result-card__value">{{ result().totalCost | number:'1.0-0' }} <i>plata</i></span>
+        </div>
+        <div class="result-card">
+          <span class="result-card__label">Ingreso total</span>
+          <span class="result-card__value">{{ result().totalIncome | number:'1.0-0' }} <i>plata</i></span>
+        </div>
+        <div class="result-card result-card--profit" [class.result-card--negative]="result().profit < 0">
+          <span class="result-card__label">Beneficio neto</span>
+          <span class="result-card__value">
+            {{ result().profit >= 0 ? '+' : '' }}{{ result().profit | number:'1.0-0' }} <i>plata</i>
           </span>
         </div>
-        <div class="result-card"
-          [class.roi-negative]="result().worstRoi < 0"
-          [class.roi-high]="result().worstRoi > 70">
-          <span class="result-card__label">Peor caso de rendimiento del producto</span>
-          <span class="result-card__value result-card__value--row">
-            <span>{{ result().worstTotalIncome | number:'1.0-0' }} <i>Ingreso total</i></span>
-            <span [class.result-card--negative]="result().worstProfit < 0">
-              {{ result().worstProfit >= 0 ? '+' : '' }}{{ result().worstProfit | number:'1.0-0' }} <i>Beneficio neto</i>
-            </span>
-            <span>{{ result().worstRoi | number:'1.1-1' }} % <i>ROI</i></span>
-          </span>
+        <div class="result-card">
+          <span class="result-card__label">ROI</span>
+          <span class="result-card__value">{{ result().roi | number:'1.1-1' }} %</span>
         </div>
       </div>
 
@@ -205,14 +195,26 @@
           <span>Semillas necesarias</span>
           <span>{{ result().seedsNeeded | number:'1.0-0' }}</span>
         </div>
-          <div class="result-detail__row">
-            <span>Semillas devueltas</span>
-            <span>{{ result().seedsBackWorst | number:'1.0-0' }} – {{ result().seedsBack | number:'1.0-0' }}</span>
-          </div>
-          <div class="result-detail__row">
-            <span>Cosecha total (uds.)</span>
-            <span>{{ result().worstGrossYield | number:'1.0-0' }} – {{ result().bestGrossYield | number:'1.0-0' }}</span>
-          </div>
+        <div class="result-detail__row">
+          <span>Semillas devueltas (aprox.)</span>
+          <span>{{ result().seedsBack | number:'1.0-0' }}</span>
+        </div>
+        <div class="result-detail__row">
+          <span>Cosecha total (uds.)</span>
+          <span>{{ result().grossYield | number:'1.0-0' }}</span>
+        </div>
+        <div class="result-detail__row">
+          <span>Coste semillas</span>
+          <span>{{ result().seedCost | number:'1.0-0' }} <i>plata</i></span>
+        </div>
+        <div class="result-detail__row">
+          <span>Ingreso por semillas</span>
+          <span>{{ result().incomeSeeds | number:'1.0-0' }} <i>plata</i></span>
+        </div>
+        <div class="result-detail__row">
+          <span>Ingreso por cosecha</span>
+          <span>{{ result().incomeYield | number:'1.0-0' }} <i>plata</i></span>
+        </div>
         @if (focus()) {
           <div class="result-detail__row">
             <span>Cantidad de foco necesario</span>
@@ -221,6 +223,16 @@
         }
       </div>
 
+      <div class="result-per">
+        <div class="result-per__item">
+          <span class="result-per__label">Beneficio / parcela</span>
+          <span class="result-per__value">{{ result().profitPerPlot | number:'1.0-0' }} <i>plata</i></span>
+        </div>
+        <div class="result-per__item">
+          <span class="result-per__label">Beneficio / hora</span>
+          <span class="result-per__value">{{ result().profitPerHour | number:'1.0-0' }} <i>plata</i></span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
