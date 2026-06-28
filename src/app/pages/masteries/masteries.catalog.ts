@@ -29,6 +29,19 @@ const ALCHEMY_SUB_MASTERIES: MasteryDef[] = [
   { key: 'bootlegger', label: 'Alcohol', iconId: 'T8_ALCOHOL', maxLevel: 100 },
 ];
 
+/** Sub-maestrías de Cocina. */
+const COOKING_SUB_MASTERIES: MasteryDef[] = [
+  { key: 'chef', label: 'Chef', iconId: 'T4_MEAL_STEW', maxLevel: 100 },
+  { key: 'omelette', label: 'Tortilla', iconId: 'T8_MEAL_OMELETTE', maxLevel: 100 },
+  { key: 'pie', label: 'Pastel', iconId: 'T8_MEAL_PIE', maxLevel: 100 },
+  { key: 'salad', label: 'Ensalada', iconId: 'T8_MEAL_SALAD', maxLevel: 100 },
+  { key: 'sandwich', label: 'Sándwich', iconId: 'T8_MEAL_SANDWICH', maxLevel: 100 },
+  { key: 'soup', label: 'Sopa', iconId: 'T8_MEAL_SOUP', maxLevel: 100 },
+  { key: 'stew', label: 'Estofado', iconId: 'T8_MEAL_STEW', maxLevel: 100 },
+  { key: 'roast', label: 'Asado', iconId: 'T8_MEAL_ROAST', maxLevel: 100 },
+  { key: 'harvester', label: 'Ingrediente', iconId: 'T8_FARM_EGG', maxLevel: 100 },
+];
+
 /** Catálogo completo de maestrías obtenibles, en el mismo orden que en el juego. */
 export const MASTERIES_CATALOG: MasteryDef[] = [
   // Refinado y otras profesiones
@@ -39,7 +52,7 @@ export const MASTERIES_CATALOG: MasteryDef[] = [
     maxLevel: 1500,
     subMasteries: ALCHEMY_SUB_MASTERIES,
   },
-  { key: 'cooking', label: 'Cocina', iconId: 'T8_MEAL_STEW', maxLevel: 900 },
+  { key: 'cooking', label: 'Cocina', iconId: 'T8_MEAL_STEW', maxLevel: 900, subMasteries: COOKING_SUB_MASTERIES },
   { key: 'animal_breeder', label: 'Criador de animales', iconId: 'T8_FARM_OX_GROWN', maxLevel: 900 },
   { key: 'crop_farmer', label: 'Agricultor', iconId: 'T8_PUMPKIN', maxLevel: 800 },
   { key: 'herbalist', label: 'Herbolario', iconId: 'T8_BAG_INSIGHT', maxLevel: 700 },

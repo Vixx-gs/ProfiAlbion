@@ -150,7 +150,7 @@
             @if (m.subMasteries?.length) {
               <div class="mastery-sub-grid">
                 @for (s of m.subMasteries; track s.key) {
-                    <div class="mastery-sub" [class.mastery-sub--alchemy]="s.key === 'alchemist_mastery'">
+                    <div class="mastery-sub" [class.mastery-sub--lead]="$first">
                     <div class="mastery-sub__head">
                       <img
                         class="mastery-sub__icon"
