@@ -195,6 +195,8 @@ export class Farming {
     const yieldPrice = this.yieldPrice();
 
     const premiumMult = premium ? 2 : 1;
+    const taxRate = premium ? 0.04 : 0.08;
+    const taxMultiplier = 1 - taxRate;
     const biomeBonus = (BIOME_BONUS[this.plantCity()] ?? []).includes(item.id) ? 1.1 : 1;
 
     const seedsNeeded = n;
@@ -208,12 +210,12 @@ export class Farming {
 
     const worstGrossYield = yieldRangeMin * n;
     const bestGrossYield = yieldRangeMax * n;
-    const worstIncomeYield = Math.round(worstGrossYield * yieldPrice);
-    const bestIncomeYield = Math.round(bestGrossYield * yieldPrice);
+    const worstIncomeYield = Math.round(worstGrossYield * yieldPrice * taxMultiplier);
+    const bestIncomeYield = Math.round(bestGrossYield * yieldPrice * taxMultiplier);
 
     const seedCost = Math.round(seedsNeeded * seedPrice);
     const incomeSeeds = Math.round(seedsBack * seedPrice * 0.6);
-    const incomeYield = Math.round(grossYield * yieldPrice);
+    const incomeYield = Math.round(grossYield * yieldPrice * taxMultiplier);
     const totalIncome = incomeSeeds + incomeYield;
     const totalCost = seedCost;
     const profit = totalIncome - totalCost;
