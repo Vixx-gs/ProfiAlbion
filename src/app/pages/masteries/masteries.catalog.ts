@@ -32,28 +32,28 @@ const ALCHEMY_SUB_MASTERIES: MasteryDef[] = [
 /** Sub-maestrías de Ganadero. */
 const BREEDER_SUB_MASTERIES: MasteryDef[] = [
   { key: 'breeder_mastery', label: 'Ganadero', iconId: 'T4_FARM_OX_GROWN', maxLevel: 100 },
-  { key: 'sheep', label: 'Ovejas', iconId: 'T8_FARM_SHEEP_GROWN', maxLevel: 100 },
-  { key: 'pig', label: 'Cerdos', iconId: 'T8_FARM_PIG_GROWN', maxLevel: 100 },
+  { key: 'sheep', label: 'Ovejas', iconId: 'T6_FARM_SHEEP_GROWN', maxLevel: 100 },
+  { key: 'pig', label: 'Cerdos', iconId: 'T7_FARM_PIG_GROWN', maxLevel: 100 },
   { key: 'cow', label: 'Vacas', iconId: 'T8_FARM_COW_GROWN', maxLevel: 100 },
   { key: 'horse', label: 'Caballos', iconId: 'T8_FARM_HORSE_GROWN', maxLevel: 100 },
   { key: 'ox', label: 'Bueyes', iconId: 'T8_FARM_OX_GROWN', maxLevel: 100 },
-  { key: 'chicken', label: 'Gallinas', iconId: 'T8_FARM_CHICKEN_GROWN', maxLevel: 100 },
-  { key: 'goat', label: 'Cabras', iconId: 'T8_FARM_GOAT_GROWN', maxLevel: 100 },
-  { key: 'goose', label: 'Gansos', iconId: 'T8_FARM_GOOSE_GROWN', maxLevel: 100 },
+  { key: 'chicken', label: 'Gallinas', iconId: 'T3_FARM_CHICKEN_GROWN', maxLevel: 100 },
+  { key: 'goat', label: 'Cabras', iconId: 'T4_FARM_GOAT_GROWN', maxLevel: 100 },
+  { key: 'goose', label: 'Gansos', iconId: 'T5_FARM_GOOSE_GROWN', maxLevel: 100 },
   { key: 'rare', label: 'Animales Raros', iconId: 'T8_FARM_DIREWOLF_GROWN', maxLevel: 100 },
 ];
 
 /** Sub-maestrías de Cocina. */
 const COOKING_SUB_MASTERIES: MasteryDef[] = [
   { key: 'chef', label: 'Chef', iconId: 'T4_MEAL_STEW', maxLevel: 100 },
-  { key: 'omelette', label: 'Tortilla', iconId: 'T8_MEAL_OMELETTE', maxLevel: 100 },
-  { key: 'pie', label: 'Pastel', iconId: 'T8_MEAL_PIE', maxLevel: 100 },
-  { key: 'salad', label: 'Ensalada', iconId: 'T8_MEAL_SALAD', maxLevel: 100 },
+  { key: 'omelette', label: 'Tortilla', iconId: 'T7_MEAL_OMELETTE', maxLevel: 100 },
+  { key: 'pie', label: 'Pastel', iconId: 'T7_MEAL_PIE', maxLevel: 100 },
+  { key: 'salad', label: 'Ensalada', iconId: 'T6_MEAL_SALAD', maxLevel: 100 },
   { key: 'sandwich', label: 'Sándwich', iconId: 'T8_MEAL_SANDWICH', maxLevel: 100 },
-  { key: 'soup', label: 'Sopa', iconId: 'T8_MEAL_SOUP', maxLevel: 100 },
+  { key: 'soup', label: 'Sopa', iconId: 'T5_MEAL_SOUP', maxLevel: 100 },
   { key: 'stew', label: 'Estofado', iconId: 'T8_MEAL_STEW', maxLevel: 100 },
-  { key: 'roast', label: 'Asado', iconId: 'T8_MEAL_ROAST', maxLevel: 100 },
-  { key: 'harvester', label: 'Ingrediente', iconId: 'T8_FARM_EGG', maxLevel: 100 },
+  { key: 'roast', label: 'Asado', iconId: 'T7_MEAL_ROAST', maxLevel: 100 },
+  { key: 'harvester', label: 'Ingrediente', iconId: 'T1_MEAL_GRILLEDFISH', maxLevel: 100 },
 ];
 
 /** Catálogo completo de maestrías obtenibles, en el mismo orden que en el juego. */
