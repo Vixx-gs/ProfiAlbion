@@ -7,6 +7,8 @@ export interface WikiItemDef {
   name: string;
   tier: number;
   folder: string;
+  harvestId: string;
+  seedId: string;
   growHours?: number;
   focusBonus?: number;
   focusCost?: number;
@@ -41,6 +43,8 @@ export function lookupItem(section: string, category: string, folder: string): W
       name: `Semilla de ${entry.name}`,
       tier: entry.tier,
       folder,
+      harvestId: entry.harvestId,
+      seedId: entry.seedId,
       ...extra,
     };
   }
@@ -49,6 +53,8 @@ export function lookupItem(section: string, category: string, folder: string): W
     name: entry.name,
     tier: entry.tier,
     folder,
+    harvestId: entry.harvestId,
+    seedId: entry.seedId,
     ...extra,
   };
 }

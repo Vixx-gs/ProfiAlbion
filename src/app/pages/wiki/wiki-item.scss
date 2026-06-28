@@ -177,7 +177,7 @@
       padding: 0;
     }
 
-    strong {
+    ::ng-deep strong {
       color: var(--accent, #7c5cfc);
     }
   }

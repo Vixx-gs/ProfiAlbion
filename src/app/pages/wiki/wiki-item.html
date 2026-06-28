@@ -9,7 +9,7 @@
         <h1 class="wi__title">{{ d.name }}</h1>
         <p class="wi__sub">{{ params().section === 'semillas' ? 'Semilla' : 'Cultivo' }} · {{ params().category }}</p>
       </div>
-      <a class="wi__calc-link" routerLink="/cultivos">Calculadora de Cultivos</a>
+      <a class="wi__calc-link" [routerLink]="['/cultivos']" [queryParams]="{harvestId: d.harvestId, plantCity: recommendedCity(), marketCity: recommendedCity()}">Calculadora de {{ cropName() }}</a>
     </header>
 
     <div class="wi__cards">

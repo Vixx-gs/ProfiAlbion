@@ -5,7 +5,8 @@ import { AlbionDataService } from '../../core/albion-data.service';
 import { MarketFlip } from '../../core/market-flips.service';
 import { MarketHistory } from '../flips/market-history/market-history';
 import { harvestIdToFolder } from '../wiki/wiki-data';
-import { Subject, Subscription, catchError, debounceTime, of, switchMap, timeout } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { Subject, Subscription, catchError, debounceTime, filter, of, switchMap, timeout } from 'rxjs';
 
 interface CropDef {
   id: string;
@@ -134,6 +135,21 @@ export class Farming {
 
   constructor() {
     const destroyRef = inject(DestroyRef);
+    const route = inject(ActivatedRoute);
+
+    const querySub = route.queryParams.pipe(
+      filter(p => p['harvestId']),
+    ).subscribe(params => {
+      const harvestId = params['harvestId'];
+      const all = [...CROPS, ...HERBS];
+      const found = all.find(c => c.harvestId === harvestId);
+      if (found) {
+        this.tab.set(CROPS.includes(found) ? 'crops' : 'herbs');
+        this.selectItem(found);
+      }
+      if (params['plantCity']) this.plantCity.set(params['plantCity']);
+      if (params['marketCity']) this.marketCity.set(params['marketCity']);
+    });
 
     this.priceSub = this.fetchTrigger.pipe(
       debounceTime(100),
@@ -168,6 +184,7 @@ export class Farming {
     });
 
     destroyRef.onDestroy(() => {
+      querySub.unsubscribe();
       this.priceSub.unsubscribe();
     });
 
