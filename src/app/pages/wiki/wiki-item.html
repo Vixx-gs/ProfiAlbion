@@ -9,12 +9,179 @@
         <h1 class="wi__title">{{ d.name }}</h1>
         <p class="wi__sub">{{ params().section === 'semillas' ? 'Semilla' : 'Cultivo' }} · {{ params().category }}</p>
       </div>
+      <a class="wi__calc-link" routerLink="/cultivos">Calculadora de Cultivos</a>
     </header>
 
-    <section class="wi__content">
-      <p class="wi__placeholder">Contenido próximamente.</p>
-    </section>
+    <div class="wi__cards">
+      <section class="wi__card">
+        @if (d.growHours != null || d.defaultSeedPrice != null) {
+          <h2 class="wi__card-title">Datos para cultivar</h2>
+          <table class="wi__table">
+            <tbody>
+              @if (d.growHours != null) {
+                <tr>
+                  <td class="wi__table-label">Tiempo de crecimiento</td>
+                  <td class="wi__table-value">{{ d.growHours }} h</td>
+                </tr>
+              }
+              @if (d.focusBonus != null) {
+                <tr>
+                  <td class="wi__table-label">Bono diario de riego</td>
+                  <td class="wi__table-value">+{{ d.focusBonus * 100 | number:'1.0-0' }}&nbsp;% de semillas</td>
+                </tr>
+              }
+              @if (d.focusCost != null) {
+                <tr>
+                  <td class="wi__table-label">Coste diario de riego</td>
+                  <td class="wi__table-value">{{ d.focusCost | number:'1.0-0' }} de foco <i>(spec 0)</i></td>
+                </tr>
+              }
+              @if (d.seedsPerHarvest != null) {
+                <tr>
+                  <td class="wi__table-label">Producción de semilla</td>
+                  <td class="wi__table-value">{{ d.seedsPerHarvest * 100 | number:'1.0-2' }}&nbsp;%</td>
+                </tr>
+              }
+              @if (d.defaultSeedPrice != null) {
+                <tr>
+                  <td class="wi__table-label">Precio mercader agrícola</td>
+                  <td class="wi__table-value">{{ d.defaultSeedPrice | number:'1.0-0' }} <i>plata</i></td>
+                </tr>
+              }
+              @if (d.yieldPerHarvest != null) {
+                <tr>
+                  <td class="wi__table-label">Rendimiento del producto</td>
+                  <td class="wi__table-value">{{ d.yieldPerHarvest | number:'1.1-1' }} / parcela</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="wi__placeholder">Contenido próximamente.</p>
+        }
+      </section>
+
+      @if (d.moreInfo && d.moreInfo.length) {
+      <section class="wi__card">
+        <h2 class="wi__card-title">Más información</h2>
+        <ul class="wi__info-list">
+          @for (info of d.moreInfo; track $index) {
+          <li [innerHTML]="info"></li>
+          }
+        </ul>
+      </section>
+      }
+
+      @if (d.drops && d.drops.length) {
+      <section class="wi__card">
+        <h2 class="wi__card-title">Posibilidades de drop</h2>
+        <div class="wi__drop">
+          @for (drop of d.drops; track drop.itemId) {
+          <div class="wi__drop-row">
+            @if (drop.link) {
+            <a [routerLink]="drop.link"><img class="wi__drop-icon" src="https://render.albiononline.com/v1/item/{{ drop.itemId }}.png?size=128" alt="" width="60" height="60" /></a>
+            } @else {
+            <img class="wi__drop-icon" src="https://render.albiononline.com/v1/item/{{ drop.itemId }}.png?size=128" alt="" width="60" height="60" />
+            }
+            <div class="wi__drop-lines">
+              <span class="wi__drop-label">{{ drop.label }}</span>
+              @if (drop.noPremium != null) {
+              <span class="wi__drop-line">Sin premium: <strong>{{ drop.noPremium }}</strong></span>
+              }
+              @if (drop.withPremium != null) {
+              <span class="wi__drop-line">Con premium: <strong>{{ drop.withPremium }}</strong></span>
+              }
+              @if (drop.quantity != null) {
+              <span class="wi__drop-line">Cantidad: <strong>{{ drop.quantity }}</strong></span>
+              }
+            </div>
+            <span class="wi__drop-pct"><strong>{{ drop.percentage }}</strong></span>
+          </div>
+          }
+        </div>
+      </section>
+      }
+    </div>
   } @else {
     <p class="wi__error">Item no encontrado.</p>
+  }
+
+  @if (params().section === 'semillas') {
+  <section class="wi__seed-gallery">
+    <h2 class="wi__card-title">Relacionados</h2>
+    <div class="wi__seed-cols">
+      <div class="wi__seed-group">
+        <span class="wi__seed-group-label">Agricultor</span>
+          <div class="wi__seed-row">
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/agricultor/Semilla_T1_Zanahoria"><img src="https://render.albiononline.com/v1/item/T1_FARM_CARROT_SEED.png?size=128" alt="Zanahoria" width="90" height="90" loading="lazy" /></a>
+            <span>Zanahoria</span>
+          </div>
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/agricultor/Semilla_T2_Frijoles"><img src="https://render.albiononline.com/v1/item/T2_FARM_BEAN_SEED.png?size=128" alt="Frijoles" width="90" height="90" loading="lazy" /></a>
+            <span>Frijoles</span>
+          </div>
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/agricultor/Semilla_T3_Trigo"><img src="https://render.albiononline.com/v1/item/T3_FARM_WHEAT_SEED.png?size=128" alt="Trigo" width="90" height="90" loading="lazy" /></a>
+            <span>Trigo</span>
+          </div>
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/agricultor/Semilla_T4_Rabano"><img src="https://render.albiononline.com/v1/item/T4_FARM_TURNIP_SEED.png?size=128" alt="Rábano" width="90" height="90" loading="lazy" /></a>
+            <span>Rábano</span>
+          </div>
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/agricultor/Semilla_T5_Col"><img src="https://render.albiononline.com/v1/item/T5_FARM_CABBAGE_SEED.png?size=128" alt="Col" width="90" height="90" loading="lazy" /></a>
+            <span>Col</span>
+          </div>
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/agricultor/Semilla_T6_Patata"><img src="https://render.albiononline.com/v1/item/T6_FARM_POTATO_SEED.png?size=128" alt="Patata" width="90" height="90" loading="lazy" /></a>
+            <span>Patata</span>
+          </div>
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/agricultor/Semilla_T7_Maiz"><img src="https://render.albiononline.com/v1/item/T7_FARM_CORN_SEED.png?size=128" alt="Maíz" width="90" height="90" loading="lazy" /></a>
+            <span>Maíz</span>
+          </div>
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/agricultor/Semilla_T8_Calabaza"><img src="https://render.albiononline.com/v1/item/T8_FARM_PUMPKIN_SEED.png?size=128" alt="Calabaza" width="90" height="90" loading="lazy" /></a>
+            <span>Calabaza</span>
+          </div>
+        </div>
+      </div>
+      <div class="wi__seed-divider"></div>
+      <div class="wi__seed-group">
+        <span class="wi__seed-group-label">Herborista</span>
+        <div class="wi__seed-row">
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/herborista/Semilla_T2_Agarico_Arcano"><img src="https://render.albiononline.com/v1/item/T2_FARM_AGARIC_SEED.png?size=128" alt="Agárico arcano" width="90" height="90" loading="lazy" /></a>
+            <span>Agárico arcano</span>
+          </div>
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/herborista/Semilla_T3_Consuelda_Hojabrillante"><img src="https://render.albiononline.com/v1/item/T3_FARM_COMFREY_SEED.png?size=128" alt="Consuelda hojabrillante" width="90" height="90" loading="lazy" /></a>
+            <span>Consuelda hojabrillante</span>
+          </div>
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/herborista/Semilla_T4_Bardana_Almenada"><img src="https://render.albiononline.com/v1/item/T4_FARM_BURDOCK_SEED.png?size=128" alt="Bardana almenada" width="90" height="90" loading="lazy" /></a>
+            <span>Bardana almenada</span>
+          </div>
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/herborista/Semilla_T5_Cardo_Dragon"><img src="https://render.albiononline.com/v1/item/T5_FARM_TEASEL_SEED.png?size=128" alt="Cardo de dragón" width="90" height="90" loading="lazy" /></a>
+            <span>Cardo de dragón</span>
+          </div>
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/herborista/Semilla_T6_Dedalera_Elusiva"><img src="https://render.albiononline.com/v1/item/T6_FARM_FOXGLOVE_SEED.png?size=128" alt="Dedalera elusiva" width="90" height="90" loading="lazy" /></a>
+            <span>Dedalera elusiva</span>
+          </div>
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/herborista/Semilla_T7_Gordolobo_Igneo"><img src="https://render.albiononline.com/v1/item/T7_FARM_MULLEIN_SEED.png?size=128" alt="Gordolobo ígneo" width="90" height="90" loading="lazy" /></a>
+            <span>Gordolobo ígneo</span>
+          </div>
+          <div class="wi__seed-item">
+            <a routerLink="/wiki/semillas/herborista/Semilla_T8_Milenrama_Demoniaca"><img src="https://render.albiononline.com/v1/item/T8_FARM_YARROW_SEED.png?size=128" alt="Milenrama demoníaca" width="90" height="90" loading="lazy" /></a>
+            <span>Milenrama demoníaca</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
   }
 </div>

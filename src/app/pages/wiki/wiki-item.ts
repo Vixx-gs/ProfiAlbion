@@ -1,4 +1,5 @@
 import { Component, inject, computed } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
@@ -6,7 +7,7 @@ import { lookupItem } from './wiki-data';
 
 @Component({
   selector: 'app-wiki-item',
-  imports: [RouterLink],
+  imports: [RouterLink, DecimalPipe],
   templateUrl: './wiki-item.html',
   styleUrl: './wiki-item.scss',
 })

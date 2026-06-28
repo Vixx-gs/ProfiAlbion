@@ -1,12 +1,20 @@
 import { CROP_FOLDERS as HARVEST_CROPS, HERB_FOLDERS as HARVEST_HERBS } from './cultivos/cultivos-data';
 import { CROP_FOLDERS as SEED_CROPS, HERB_FOLDERS as SEED_HERBS } from './semillas/semillas-data';
-import type { ItemData } from './wiki-types';
+import type { ItemData, DropEntry } from './wiki-types';
 
 export interface WikiItemDef {
   itemId: string;
   name: string;
   tier: number;
   folder: string;
+  growHours?: number;
+  focusBonus?: number;
+  focusCost?: number;
+  seedsPerHarvest?: number;
+  defaultSeedPrice?: number;
+  yieldPerHarvest?: number;
+  moreInfo?: string[];
+  drops?: DropEntry[];
 }
 
 export function lookupItem(section: string, category: string, folder: string): WikiItemDef | null {
@@ -17,10 +25,32 @@ export function lookupItem(section: string, category: string, folder: string): W
   const entry = items.find((i) => i.folder === folder);
   if (!entry) return null;
 
+  const extra = {
+    growHours: entry.growHours,
+    focusBonus: entry.focusBonus,
+    focusCost: entry.focusCost,
+    seedsPerHarvest: entry.seedsPerHarvest,
+    defaultSeedPrice: entry.defaultSeedPrice,
+    yieldPerHarvest: entry.yieldPerHarvest,
+    moreInfo: entry.moreInfo,
+    drops: entry.drops,
+  };
   if (isSeed) {
-    return { itemId: entry.seedId, name: `Semilla de ${entry.name}`, tier: entry.tier, folder };
+    return {
+      itemId: entry.seedId,
+      name: `Semilla de ${entry.name}`,
+      tier: entry.tier,
+      folder,
+      ...extra,
+    };
   }
-  return { itemId: entry.harvestId, name: entry.name, tier: entry.tier, folder };
+  return {
+    itemId: entry.harvestId,
+    name: entry.name,
+    tier: entry.tier,
+    folder,
+    ...extra,
+  };
 }
 
 export const ALL_CROP_FOLDERS = HARVEST_CROPS;
