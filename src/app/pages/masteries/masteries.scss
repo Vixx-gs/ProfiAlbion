@@ -289,6 +289,24 @@
 .mastery-row--open {
   border-color: var(--border-strong);
 }
+.mastery-sub--alchemy {
+  border: 3px solid var(--gold);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 2px var(--gold) inset, 0 0 20px -4px var(--gold-glow);
+  padding: 10px 12px;
+  animation: pulse-gold 3s ease-in-out infinite;
+}
+
+@keyframes pulse-gold {
+  0%, 100% {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px var(--gold) inset, 0 0 10px -4px var(--gold-glow);
+  }
+  50% {
+    border-color: var(--gold-bright);
+    box-shadow: 0 0 0 2px var(--gold-bright) inset, 0 0 30px -2px var(--gold-glow);
+  }
+}
 
 .mastery-row__head {
   display: flex;
@@ -338,4 +356,121 @@
   font-size: 13px;
   color: var(--text-dim);
   padding-top: 12px;
+}
+
+/* ===== Grid de sub-maestrías (p.ej. elaboradores de Alquimia) ===== */
+.mastery-sub-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px 32px;
+  padding: 16px 0 4px;
+}
+@media (max-width: 900px) {
+  .mastery-sub-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .mastery-sub-grid { grid-template-columns: 1fr; }
+}
+
+.mastery-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.mastery-sub__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mastery-sub__icon {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+.mastery-sub__label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mastery-sub__level {
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.mastery-sub__sliderrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mastery-sub__sliderrow input[type='range'] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border-strong);
+  outline: none;
+  cursor: pointer;
+}
+.mastery-sub__sliderrow input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+.mastery-sub__sliderrow input[type='range']::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+.mastery-sub__sliderrow input[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #fff;
+  cursor: pointer;
+}
+
+.mastery-sub__btns {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+.mastery-sub__btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.mastery-sub__btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary);
+}
+.mastery-sub__btn--max {
+  width: auto;
+  padding: 0 8px;
+  font-size: 11px;
 }
