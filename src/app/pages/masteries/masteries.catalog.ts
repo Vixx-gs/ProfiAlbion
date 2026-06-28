@@ -29,6 +29,20 @@ const ALCHEMY_SUB_MASTERIES: MasteryDef[] = [
   { key: 'bootlegger', label: 'Alcohol', iconId: 'T8_ALCOHOL', maxLevel: 100 },
 ];
 
+/** Sub-maestrías de Ganadero. */
+const BREEDER_SUB_MASTERIES: MasteryDef[] = [
+  { key: 'breeder_mastery', label: 'Ganadero', iconId: 'T4_FARM_OX_GROWN', maxLevel: 100 },
+  { key: 'sheep', label: 'Ovejas', iconId: 'T8_FARM_SHEEP_GROWN', maxLevel: 100 },
+  { key: 'pig', label: 'Cerdos', iconId: 'T8_FARM_PIG_GROWN', maxLevel: 100 },
+  { key: 'cow', label: 'Vacas', iconId: 'T8_FARM_COW_GROWN', maxLevel: 100 },
+  { key: 'horse', label: 'Caballos', iconId: 'T8_FARM_HORSE_GROWN', maxLevel: 100 },
+  { key: 'ox', label: 'Bueyes', iconId: 'T8_FARM_OX_GROWN', maxLevel: 100 },
+  { key: 'chicken', label: 'Gallinas', iconId: 'T8_FARM_CHICKEN_GROWN', maxLevel: 100 },
+  { key: 'goat', label: 'Cabras', iconId: 'T8_FARM_GOAT_GROWN', maxLevel: 100 },
+  { key: 'goose', label: 'Gansos', iconId: 'T8_FARM_GOOSE_GROWN', maxLevel: 100 },
+  { key: 'rare', label: 'Animales Raros', iconId: 'T8_FARM_DIREWOLF_GROWN', maxLevel: 100 },
+];
+
 /** Sub-maestrías de Cocina. */
 const COOKING_SUB_MASTERIES: MasteryDef[] = [
   { key: 'chef', label: 'Chef', iconId: 'T4_MEAL_STEW', maxLevel: 100 },
@@ -53,7 +67,7 @@ export const MASTERIES_CATALOG: MasteryDef[] = [
     subMasteries: ALCHEMY_SUB_MASTERIES,
   },
   { key: 'cooking', label: 'Cocina', iconId: 'T8_MEAL_STEW', maxLevel: 900, subMasteries: COOKING_SUB_MASTERIES },
-  { key: 'animal_breeder', label: 'Criador de animales', iconId: 'T8_FARM_OX_GROWN', maxLevel: 900 },
+  { key: 'animal_breeder', label: 'Ganadero', iconId: 'T8_FARM_OX_GROWN', maxLevel: 900, subMasteries: BREEDER_SUB_MASTERIES },
   { key: 'crop_farmer', label: 'Agricultor', iconId: 'T8_PUMPKIN', maxLevel: 800 },
   { key: 'herbalist', label: 'Herbolario', iconId: 'T8_BAG_INSIGHT', maxLevel: 700 },
   { key: 'fiber_weaver', label: 'Tejedor de fibra', iconId: 'T8_JOURNAL_FIBER', maxLevel: 500 },
