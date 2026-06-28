@@ -1,0 +1,20 @@
+<div class="wi">
+  <a class="wi__back" routerLink="/wiki">← Wiki</a>
+
+  @if (data(); as d) {
+    <header class="wi__head">
+      <img class="wi__icon" [src]="iconUrl()" [alt]="d.name" width="64" height="64" />
+      <div>
+        <span class="wi__tier">T{{ d.tier }}</span>
+        <h1 class="wi__title">{{ d.name }}</h1>
+        <p class="wi__sub">{{ params().section === 'semillas' ? 'Semilla' : 'Cultivo' }} · {{ params().category }}</p>
+      </div>
+    </header>
+
+    <section class="wi__content">
+      <p class="wi__placeholder">Contenido próximamente.</p>
+    </section>
+  } @else {
+    <p class="wi__error">Item no encontrado.</p>
+  }
+</div>

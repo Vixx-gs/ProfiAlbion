@@ -6,6 +6,8 @@ interface NavLink {
   label: string;
   /** Item id de Albion para el icono (se renderiza con render.albiononline.com). */
   iconId?: string;
+  /** Icono vectorial propio (alternativa a iconId para enlaces que no son items de Albion). */
+  svg?: 'sword' | 'user' | 'plus';
   shortcut?: string;
   /** Ruta interna a la que navega (si la tiene). */
   route?: string;
@@ -43,7 +45,7 @@ export class Navbar {
       sections: [
         {
           links: [
-            { label: 'Calculadora de Agricultura', iconId: 'T8_PUMPKIN', shortcut: 'Ctrl + 1' },
+            { label: 'Calculadora de Cultivos', iconId: 'T8_PUMPKIN', shortcut: 'Ctrl + 1', route: '/cultivos' },
             { label: 'Calculadora de Animales', iconId: 'T8_FARM_OX_GROWN', shortcut: 'Ctrl + 2' },
             { label: 'Calculadora de Trabajadores', iconId: 'T8_JOURNAL_WOOD' },
             { label: 'Calculadora de Encantamiento', iconId: 'T8_RUNE' },
@@ -69,14 +71,34 @@ export class Navbar {
             { label: 'Temporizadores', iconId: 'T8_POTION_LAVA' },
             { label: 'Historial del precio del oro', iconId: 'T4_SKILLBOOK_STANDARD' },
             { label: 'Planificador de crafteo', iconId: 'T8_2H_HAMMER', shortcut: 'Ctrl + 7' },
-            { label: 'Gestión de maestrías', iconId: 'T8_RUNE' },
+            { label: 'Gestión de maestrías', iconId: 'T8_RUNE', route: '/maestrias' },
+            { label: 'Wiki de cultivos y semillas', iconId: 'T8_PUMPKIN', route: '/wiki' },
           ],
         },
       ],
     },
-    { label: 'Builds', items: ['Builds Meta', 'PvP', 'PvE'] },
-    { label: 'Guías', items: ['Para empezar', 'Economía', 'Mazmorras'] },
+    {
+      label: 'Builds',
+      sections: [
+        {
+          title: 'BUILDS',
+          links: [
+            { label: 'Builds', iconId: 'T8_MAIN_SWORD', shortcut: 'Ctrl + 9' },
+            { label: 'Mis Builds', iconId: 'T8_HEAD_PLATE_SET1' },
+            { label: 'Crear Build', svg: 'plus' },
+          ],
+        },
+        {
+          title: 'GROUP BUILDS',
+          links: [
+            { label: 'Group Builds', iconId: 'T8_MAIN_SWORD', shortcut: 'Ctrl + 0' },
+            { label: 'Mis Group Builds', iconId: 'T8_HEAD_PLATE_SET1' },
+            { label: 'Crear Group Build', svg: 'plus' },
+          ],
+        },
+      ],
+    },
     { label: 'Tablas', items: ['Items', 'Recursos', 'Encantamientos'] },
-    { label: 'Más', items: ['Sobre ProfiAlbion', 'Discord', 'Patreon'] },
+    { label: 'Mapa', items: ['Mapa del mundo', 'Mapa de Avalon'] },
   ];
 }

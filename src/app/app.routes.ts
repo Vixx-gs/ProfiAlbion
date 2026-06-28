@@ -14,5 +14,26 @@ export const routes: Routes = [
       import('./pages/price-checker/price-checker').then((m) => m.PriceChecker),
     title: 'Comprobador de precios · ProfiAlbion',
   },
+  {
+    path: 'cultivos',
+    loadComponent: () => import('./pages/farming/farming').then((m) => m.Farming),
+    title: 'Calculadora de Cultivos · ProfiAlbion',
+  },
+  {
+    path: 'maestrias',
+    loadComponent: () => import('./pages/masteries/masteries').then((m) => m.Masteries),
+    title: 'Gestión de maestrías · ProfiAlbion',
+  },
+  {
+    path: 'wiki',
+    loadComponent: () => import('./pages/wiki/wiki').then((m) => m.Wiki),
+    title: 'Wiki · ProfiAlbion',
+    children: [
+      {
+        path: ':section/:category/:item',
+        loadComponent: () => import('./pages/wiki/wiki-item').then((m) => m.WikiItem),
+      },
+    ],
+  },
   { path: '**', redirectTo: '' },
 ];
