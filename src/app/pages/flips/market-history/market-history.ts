@@ -10,6 +10,7 @@ import {
 import { DecimalPipe } from '@angular/common';
 import { AlbionDataService, HistoryPoint } from '../../../core/albion-data.service';
 import { MarketFlip } from '../../../core/market-flips.service';
+import { iconUrl as makeIconUrl } from '../../../core/icon-url';
 
 /** Escala temporal: horas por punto + cuántos puntos mostrar. */
 interface Scale {
@@ -202,6 +203,6 @@ export class MarketHistory implements OnInit {
 
   /** Icono del item. */
   iconUrl(): string {
-    return `https://render.albiononline.com/v1/item/${this.flip().itemId}.png?size=64`;
+    return makeIconUrl(this.flip().itemId, 64);
   }
 }

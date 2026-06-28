@@ -8,6 +8,7 @@ import {
 } from '../../core/market-flips.service';
 import { ALL_ITEMS, ENCHANTS, TIERS, displayName } from '../../core/items.catalog';
 import { MarketHistory } from './market-history/market-history';
+import { iconUrl as makeIconUrl, preloadIcons } from '../../core/icon-url';
 
 type SortKey = 'update' | 'profit' | 'margin' | 'volume';
 
@@ -178,6 +179,10 @@ export class Flips {
         // Cada emisión es un resultado parcial que va creciendo.
         this.result.set(res);
         this.loading.set(false);
+        // Precargar iconos de los primeros resultados visibles
+        if (res.flips.length) {
+          preloadIcons(res.flips.slice(0, this.PAGE_STEP).map((f) => f.itemId), 64);
+        }
       },
       error: () => {
         this.error.set('No se pudieron cargar los precios. Inténtalo de nuevo.');
@@ -228,7 +233,7 @@ export class Flips {
   }
   /** URL del icono de un item (con su encantamiento). */
   iconUrl(id: string): string {
-    return `https://render.albiononline.com/v1/item/${id}.png?size=64`;
+    return makeIconUrl(id, 64);
   }
   setSort(target: EventTarget | null): void {
     this.sortBy.set((target as HTMLSelectElement).value as SortKey);

@@ -26,7 +26,7 @@
                   <a class="menu__rich-link" [routerLink]="link.route ?? null" [class.menu__rich-link--nav]="link.route">
                     <img
                       class="menu__rich-icon"
-                      [src]="'https://render.albiononline.com/v1/item/' + link.iconId + '.png?size=64'"
+                      [src]="iconUrl(link.iconId!)"
                       [alt]="link.label"
                       loading="lazy"
                       width="28"

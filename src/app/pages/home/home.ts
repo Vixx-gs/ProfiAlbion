@@ -2,6 +2,7 @@ import { Component, HostListener, computed, inject, signal } from '@angular/core
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MarketFlipsService, MarketFlip } from '../../core/market-flips.service';
+import { iconUrl } from '../../core/icon-url';
 
 /** Color identificativo de cada ciudad (puntos junto al nombre). */
 const CITY_COLORS: Record<string, string> = {
@@ -103,6 +104,10 @@ export class Home {
     if (min <= 60) return 'fresh';
     if (min <= 6 * 60) return 'mid';
     return 'old';
+  }
+
+  iconUrl(id: string): string {
+    return iconUrl(id, 90);
   }
 
   /** "hace X min" a partir de una fecha ISO (UTC). */
