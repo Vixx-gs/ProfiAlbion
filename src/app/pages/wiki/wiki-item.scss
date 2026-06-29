@@ -55,7 +55,7 @@
   }
 
   &__card {
-    flex: 1 1 360px;
+    flex: 1 1 500px;
     padding: 24px;
     background: var(--card-bg, #1e1e2e);
     border: 1px solid var(--border, #2e2e3e);
@@ -182,6 +182,44 @@
     }
   }
 
+  &__usage {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  &__usage-icon {
+    flex-shrink: 0;
+  }
+
+  &__usage-desc {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text, #ddd);
+    line-height: 1.4;
+  }
+
+  &__usage-list {
+    margin: 0;
+    padding: 0 0 0 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    color: var(--text, #ddd);
+
+    li {
+      margin: 0;
+      padding: 0;
+    }
+
+    ::ng-deep strong {
+      color: var(--accent, #7c5cfc);
+    }
+  }
+
   &__placeholder {
     margin: 0;
     color: var(--text-dim, #888);
@@ -253,6 +291,36 @@
       width: 100%;
       justify-content: center;
     }
+  }
+
+  &__craft {
+    display: flex;
+    gap: 24px;
+    min-height: 348px;
+  }
+
+  &__craft-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+
+  &__craft-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__craft-icon {
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  &__craft-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text, #ddd);
   }
 
   &__error {

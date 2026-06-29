@@ -1,5 +1,4 @@
 import { Component, inject, computed } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
@@ -25,7 +24,7 @@ const BIOME_MAP: Record<string, string> = {
 
 @Component({
   selector: 'app-wiki-item',
-  imports: [RouterLink, DecimalPipe],
+  imports: [RouterLink],
   templateUrl: './wiki-item.html',
   styleUrl: './wiki-item.scss',
 })
@@ -45,6 +44,16 @@ export class WikiItem {
     lookupItem(this.params().section, this.params().category, this.params().folder),
   );
 
+  readonly craftColumns = computed(() => {
+    const items = this.data()?.craftableItems;
+    if (!items) return [];
+    const cols: typeof items[] = [];
+    for (let i = 0; i < items.length; i += 6) {
+      cols.push(items.slice(i, i + 6));
+    }
+    return cols;
+  });
+
   readonly cropName = computed(() => {
     const d = this.data();
     if (!d) return '';
@@ -55,6 +64,27 @@ export class WikiItem {
     const d = this.data();
     return d ? (BIOME_MAP[d.harvestId] ?? 'Lymhurst') : 'Lymhurst';
   });
+
+  readonly cityLine = computed(() => {
+    const d = this.data();
+    if (!d) return '';
+    const city = this.recommendedCity();
+    const second = this.params().category === 'agricultor'
+      ? 'Brecilien'
+      : (d.harvestId === 'T5_TEASEL' || d.harvestId === 'T7_MULLEIN' ? 'Caerleon' : null);
+    if (second) {
+      return `Las ciudades con rendimiento del producto son <strong>${city}</strong> y <strong>${second}</strong>`;
+    }
+    return `La ciudad con rendimiento del producto es <strong>${city}</strong>`;
+  });
+
+  readonly CITIES = ['Lymhurst', 'Bridgewatch', 'Martlock', 'Fort Sterling', 'Thetford', 'Caerleon', 'Brecilien'];
+
+  highlightTerms(text: string): string {
+    const terms = ['Escondites', 'territorios', 'trabajadores', 'animales de granja', 'comidas', 'cocinero', 'pociones', 'Alquimista', 'harina', 'molino', 'Schnapps', 'orujo', 'aguardiente', '48', '22h', ...this.CITIES];
+    const pattern = new RegExp(`(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
+    return text.replace(pattern, '<strong>$1</strong>');
+  }
 
   iconUrl(): string {
     const d = this.data();

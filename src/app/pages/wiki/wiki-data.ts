@@ -1,6 +1,6 @@
 import { CROP_FOLDERS as HARVEST_CROPS, HERB_FOLDERS as HARVEST_HERBS } from './cultivos/cultivos-data';
 import { CROP_FOLDERS as SEED_CROPS, HERB_FOLDERS as SEED_HERBS } from './semillas/semillas-data';
-import type { ItemData, DropEntry } from './wiki-types';
+import type { ItemData, DropEntry, UsageInfo, CraftableItem } from './wiki-types';
 
 export interface WikiItemDef {
   itemId: string;
@@ -17,6 +17,8 @@ export interface WikiItemDef {
   yieldPerHarvest?: number;
   moreInfo?: string[];
   drops?: DropEntry[];
+  usageInfo?: UsageInfo;
+  craftableItems?: CraftableItem[];
 }
 
 export function lookupItem(section: string, category: string, folder: string): WikiItemDef | null {
@@ -36,6 +38,8 @@ export function lookupItem(section: string, category: string, folder: string): W
     yieldPerHarvest: entry.yieldPerHarvest,
     moreInfo: entry.moreInfo,
     drops: entry.drops,
+    usageInfo: entry.usageInfo,
+    craftableItems: entry.craftableItems,
   };
   if (isSeed) {
     return {

@@ -13,6 +13,17 @@ export interface DropEntry {
   link?: string;
 }
 
+export interface UsageInfo {
+  seedImageItemId: string;
+  description: string;
+  points: string[];
+}
+
+export interface CraftableItem {
+  itemId: string;
+  name: string;
+}
+
 export interface ItemData {
   folder: string;
   harvestId: string;
@@ -35,4 +46,8 @@ export interface ItemData {
   moreInfo?: string[];
   /** Posibilidades de drop al cosechar */
   drops?: DropEntry[];
+  /** Información de uso del cultivo */
+  usageInfo?: UsageInfo;
+  /** Items crafteables a partir del cultivo */
+  craftableItems?: CraftableItem[];
 }
