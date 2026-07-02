@@ -52,16 +52,26 @@
       <!-- Ciudad de la isla -->
       <div class="panel-section">
         <h2 class="panel-section__title">Isla</h2>
+        @if (currentSelected().biomeCities.length) {
+          <div class="biome-hint">
+            <span class="biome-hint__icon">&#9733;</span>
+            {{ currentSelected().biomeCities.join(', ') }} da +10% de rendimiento para {{ currentSelected().name | lowercase }}
+          </div>
+        }
         <div class="city-options">
           @for (city of plantCities; track city) {
             <button
               class="city-opt"
               type="button"
               [class.city-opt--active]="plantCity() === city"
+              [class.city-opt--biome]="currentSelected().biomeCities.includes(city)"
               (click)="setPlantCity(city)"
             >
               <span class="city-opt__dot" [style.background]="cityColor(city)"></span>
               {{ city }}
+              @if (currentSelected().biomeCities.includes(city)) {
+                <span class="city-opt__badge">+10%</span>
+              }
             </button>
           }
         </div>
@@ -115,6 +125,9 @@
 
         <label class="field">
           <span class="field__label">Precio venta cultivo unidad</span>
+          @if (yieldPrice() === 0) {
+            <span class="field__no-data">Sin datos</span>
+          }
           <input class="field__input" type="number" min="0" [ngModel]="yieldPrice()" (ngModelChange)="yieldPrice.set($event)" placeholder="0" />
         </label>
       </div>
@@ -159,6 +172,9 @@
         <div class="result-summary__city">
           <span class="city-opt__dot" [style.background]="cityColor(plantCity())"></span>
           Isla: {{ plantCity() }}
+          @if (biomeActive()) {
+            <span class="biome-badge">+10% bioma</span>
+          }
         </div>
         <div class="result-summary__city">
           <span class="city-opt__dot" [style.background]="cityColor(marketCity())"></span>

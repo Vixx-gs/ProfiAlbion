@@ -41,6 +41,7 @@ export class Navbar {
         {
           links: [
             { label: 'Calculadora de Cultivos', iconId: 'T8_PUMPKIN', shortcut: 'Ctrl + 1', route: '/cultivos' },
+            { label: 'Calculadora de Animales Domésticos', iconId: 'T8_FARM_COW_GROWN', route: '/animales-domesticos' },
             { label: 'Calculadora de Animales', iconId: 'T8_FARM_OX_GROWN', shortcut: 'Ctrl + 2' },
             { label: 'Calculadora de Trabajadores', iconId: 'T8_JOURNAL_WOOD' },
             { label: 'Calculadora de Encantamiento', iconId: 'T8_RUNE' },

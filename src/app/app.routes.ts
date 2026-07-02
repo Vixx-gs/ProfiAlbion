@@ -20,6 +20,14 @@ export const routes: Routes = [
     title: 'Calculadora de Cultivos · ProfiAlbion',
   },
   {
+    path: 'animales-domesticos',
+    loadComponent: () =>
+      import('./pages/animals-domesticos/animals-domesticos').then(
+        (m) => m.AnimalsDomesticos,
+      ),
+    title: 'Calculadora de Animales Domésticos · ProfiAlbion',
+  },
+  {
     path: 'maestrias',
     loadComponent: () => import('./pages/masteries/masteries').then((m) => m.Masteries),
     title: 'Gestión de maestrías · ProfiAlbion',

@@ -1,0 +1,244 @@
+<section class="container page">
+  <div class="hero-sm">
+    <h1 class="hero-sm__title">Calculadora de Animales Domésticos</h1>
+    <p class="hero-sm__subtitle">Calcula el profit de criar animales domésticos en tu isla. Selecciona el animal, ajusta los precios del mercado y obtén el beneficio diario estimado.</p>
+  </div>
+
+  <div class="calc-layout">
+    <!-- Panel izquierdo: selección y parámetros -->
+    <div class="calc-panel">
+      <!-- Animales -->
+      <div class="panel-section">
+        <div class="animal-options">
+          @for (animal of animals; track animal.id) {
+            <button
+              class="animal-opt"
+              type="button"
+              [class.animal-opt--active]="selAnimal().id === animal.id"
+              (click)="selectAnimal(animal)"
+            >
+              <img
+                class="animal-opt__icon"
+                [src]="'https://render.albiononline.com/v1/item/' + animal.iconId + '.png?size=64'"
+                [alt]="animal.name"
+                loading="lazy"
+                width="56"
+                height="56"
+              />
+              <span class="animal-opt__name">{{ animal.name }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Ciudad de la isla -->
+      <div class="panel-section">
+        <h2 class="panel-section__title">Isla</h2>
+        @if (selAnimal().biomeCities.length) {
+          <div class="biome-hint">
+            <span class="biome-hint__icon">&#9733;</span>
+            {{ selAnimal().biomeCities.join(', ') }} da +10% de producción para {{ selAnimal().name | lowercase }}
+          </div>
+        }
+        <div class="city-options">
+          @for (city of plantCities; track city) {
+            <button
+              class="city-opt"
+              type="button"
+              [class.city-opt--active]="plantCity() === city"
+              [class.city-opt--biome]="selAnimal().biomeCities.includes(city)"
+              (click)="setPlantCity(city)"
+            >
+              <span class="city-opt__dot" [style.background]="cityColor(city)"></span>
+              {{ city }}
+              @if (selAnimal().biomeCities.includes(city)) {
+                <span class="city-opt__badge">+10%</span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Ciudad de mercado -->
+      <div class="panel-section">
+        <h2 class="panel-section__title">Mercado</h2>
+        <div class="city-options">
+          @for (city of marketCities; track city) {
+            <button
+              class="city-opt"
+              type="button"
+              [class.city-opt--active]="marketCity() === city"
+              (click)="setMarketCity(city)"
+            >
+              <span class="city-opt__dot" [style.background]="cityColor(city)"></span>
+              {{ city }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Parámetros -->
+      <div class="panel-section">
+        <h2 class="panel-section__title">Parámetros</h2>
+
+        <div class="toggles">
+          <label class="toggle">
+            <input type="checkbox" [checked]="premium()" (change)="premium.set(!premium())" />
+            <span class="toggle__label">Premium</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" [checked]="favoriteFood()" (change)="favoriteFood.set(!favoriteFood())" />
+            <span class="toggle__label">Comida favorita ({{ favoriteFood() ? selAnimal().favoriteFoodName : 'Zanahorias' }})</span>
+          </label>
+          <label class="toggle toggle--focus">
+            <input type="checkbox" [checked]="focus()" (change)="focus.set(!focus())" />
+            <span class="toggle__label">Foco</span>
+            @if (focus()) {
+              <input class="toggle__input" type="number" min="0" [ngModel]="focusCost()" (ngModelChange)="focusCost.set($event)" />
+            }
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Parcelas</span>
+          <input class="field__input" type="number" min="1" max="120" [ngModel]="heads()" (ngModelChange)="heads.set($event)" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Precio cría</span>
+          <input class="field__input" type="number" min="0" [ngModel]="babyPrice()" (ngModelChange)="babyPrice.set($event)" placeholder="0" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Precio unidad comida ({{ currentFoodName() }})</span>
+          @if (feedUnitPrice() === 0) {
+            <span class="field__no-data">Sin datos</span>
+          }
+          <input class="field__input" type="number" min="0" [ngModel]="feedUnitPrice()" (ngModelChange)="feedUnitPrice.set($event)" placeholder="0" />
+        </label>
+
+      </div>
+    </div>
+
+    <!-- Panel derecho: resultados -->
+    <div class="calc-panel calc-panel--result">
+      <!-- Datos del animal seleccionado -->
+      <div class="panel-section">
+        <h2 class="panel-section__title">{{ selAnimal().name }}</h2>
+        <div class="result-detail">
+          <div class="result-detail__row">
+            <span>Tiempo de crecimiento</span>
+            <span>{{ premium() ? result().effectiveGrowHours : selAnimal().growHours }} h</span>
+          </div>
+          <div class="result-detail__row">
+            <span>Comida favorita</span>
+            <span>{{ selAnimal().favoriteFoodName }}</span>
+          </div>
+          <div class="result-detail__row">
+            <span>Comida consumida / 24h</span>
+            <span>{{ favoriteFood() ? result().feedUnitsPerHead : selAnimal().feedUnits }} uds.</span>
+          </div>
+          <div class="result-detail__row">
+            <span>Bono diario de crianza</span>
+            <span>{{ result().offspringChance | number:'1.1-1' }} %</span>
+          </div>
+          <div class="result-detail__row">
+            <span>Bono de isla</span>
+            <span>{{ biomeActive() ? '10 %' : '0 %' }}</span>
+          </div>
+          <div class="result-detail__row">
+            <span>Coste diario de crianza <i>(foco)</i></span>
+            <span>{{ result().feedCostPerDay | number:'1.0-0' }} <i>plata</i></span>
+          </div>
+          <div class="result-detail__row">
+            <span>Producción de crías</span>
+            <span>{{ result().offspringPerDay | number:'1.2-2' }} /día</span>
+          </div>
+          <div class="result-detail__row">
+            <span>Producción {{ selAnimal().products.toLowerCase() }}</span>
+            <span>{{ result().productPerDay | number:'1.1-1' }} /día</span>
+          </div>
+          <div class="result-detail__row">
+            <span>Carne por animal</span>
+            <span>{{ selAnimal().meatYield }} uds.</span>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="panel-section__title">Resultados</h2>
+
+      <div class="result-summary">
+        <div class="result-summary__city">
+          <span class="city-opt__dot" [style.background]="cityColor(plantCity())"></span>
+          Isla: {{ plantCity() }}
+          @if (biomeActive()) {
+            <span class="biome-badge">+10% bioma</span>
+          }
+        </div>
+        <div class="result-summary__city">
+          <span class="city-opt__dot" [style.background]="cityColor(marketCity())"></span>
+          Mercado: {{ marketCity() }}
+        </div>
+      </div>
+
+      <div class="result-card result-card--full">
+        <span class="result-card__label">Inversión total</span>
+        <span class="result-card__value">{{ result().totalInvestment | number:'1.0-0' }} <i>plata</i></span>
+      </div>
+
+      <div class="result-row">
+        <div class="result-card" [class.roi-negative]="result().dailyProfit < 0" [class.roi-high]="result().dailyProfit > 50000">
+          <span class="result-card__label">Beneficio diario estimado</span>
+          <span class="result-card__value" [class.result-card--negative]="result().dailyProfit < 0">
+            {{ result().dailyProfit >= 0 ? '+' : '' }}{{ result().dailyProfit | number:'1.0-0' }} <i>plata/día</i>
+          </span>
+        </div>
+      </div>
+
+
+
+      <div class="result-detail">
+        <div class="result-detail__row">
+          <span>Coste de crías</span>
+          <span>{{ result().babyCost | number:'1.0-0' }} <i>plata</i></span>
+        </div>
+        <div class="result-detail__row">
+          <span>Coste de comida (total)</span>
+          <span>{{ result().feedTotal | number:'1.0-0' }} <i>plata</i></span>
+        </div>
+        <div class="result-detail__row">
+          <span>Comida por día</span>
+          <span>{{ result().feedCostPerDay | number:'1.0-0' }} <i>plata</i></span>
+        </div>
+        <div class="result-detail__row">
+          <span>Ingresos por {{ selAnimal().products.toLowerCase() }}</span>
+          <span>{{ result().productRevenue | number:'1.0-0' }} <i>plata/día</i></span>
+        </div>
+        <div class="result-detail__row">
+          <span>Probabilidad de cría (con ajustes)</span>
+          <span>{{ result().offspringChance | number:'1.1-1' }} %</span>
+        </div>
+        <div class="result-detail__row">
+          <span>Crías esperadas / día</span>
+          <span>{{ result().offspringPerDay | number:'1.2-2' }}</span>
+        </div>
+        <div class="result-detail__row">
+          <span>Ingresos por venta de crías</span>
+          <span>{{ result().offspringRevenue | number:'1.0-0' }} <i>plata/día</i></span>
+        </div>
+        <div class="result-detail__row">
+          <span>Ingresos totales por día</span>
+          <span>{{ result().dailyRevenue | number:'1.0-0' }} <i>plata/día</i></span>
+        </div>
+        <div class="result-detail__row">
+          <span>Días para recuperar inversión</span>
+          <span>{{ result().daysToRecoup | number:'1.1-1' }} días</span>
+        </div>
+        <div class="result-detail__row">
+          <span>ROI diario</span>
+          <span>{{ result().roiPerDay | number:'1.2-2' }} %</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
