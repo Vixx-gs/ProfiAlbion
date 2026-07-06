@@ -37,6 +37,12 @@ class Handler(BaseHTTPRequestHandler):
             from cache import get_freshness
             ts = get_freshness()
             self._json(200, {'last_capture': ts})
+        elif path == '/proxy/status':
+            self._handle_proxy_status()
+        elif path == '/proxy/enable':
+            self._handle_proxy_set(True)
+        elif path == '/proxy/disable':
+            self._handle_proxy_set(False)
         else:
             self._json(404, {'error': 'not_found'})
 
@@ -45,8 +51,10 @@ class Handler(BaseHTTPRequestHandler):
         suffix = path[len(prefix):]
         item_ids = suffix.replace('.json', '').split(',')
 
-        locations = qs.get('locations', [''])
-        qualities = [int(q) for q in qs.get('qualities', ['1,2,3,4,5'])[0].split(',')]
+        raw_locations = qs.get('locations', [''])[0]
+        locations = [l.strip() for l in raw_locations.split(',') if l.strip()] or ['']
+        raw_qualities = qs.get('qualities', ['1,2,3,4,5'])[0]
+        qualities = [int(q) for q in raw_qualities.split(',') if q.strip()]
 
         items_filter = []
         for raw in item_ids:
@@ -74,6 +82,37 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200, data)
         else:
             self._json(502, {'error': 'no_data_available'})
+
+    def _proxy_reg(self) -> tuple:
+        import winreg
+        key = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r'Software\Microsoft\Windows\CurrentVersion\Internet Settings',
+            0, winreg.KEY_READ | winreg.KEY_SET_VALUE,
+        )
+        return key, winreg
+
+    def _handle_proxy_status(self):
+        try:
+            key, wr = self._proxy_reg()
+            enabled = wr.QueryValueEx(key, 'ProxyEnable')[0]
+            server = wr.QueryValueEx(key, 'ProxyServer')[0]
+            wr.CloseKey(key)
+            self._json(200, {'enabled': bool(enabled), 'server': server})
+        except Exception as e:
+            self._json(500, {'error': str(e)})
+
+    def _handle_proxy_set(self, enable: bool):
+        try:
+            key, wr = self._proxy_reg()
+            wr.SetValueEx(key, 'ProxyEnable', 0, wr.REG_DWORD, 1 if enable else 0)
+            wr.SetValueEx(key, 'ProxyServer', 0, wr.REG_SZ, '127.0.0.1:8080')
+            if enable:
+                wr.SetValueEx(key, 'ProxyOverride', 0, wr.REG_SZ, '127.0.0.1;localhost;*.local;<local>')
+            wr.CloseKey(key)
+            self._json(200, {'enabled': enable, 'server': '127.0.0.1:8080'})
+        except Exception as e:
+            self._json(500, {'error': str(e)})
 
     def _json(self, status: int, data):
         self.send_response(status)

@@ -6,6 +6,7 @@ import {
   FlipResult,
   ScanParams,
 } from '../../core/market-flips.service';
+import { ProxyToggleService } from '../../core/proxy-toggle.service';
 import { ALL_ITEMS, ENCHANTS, TIERS, displayName } from '../../core/items.catalog';
 import { MarketHistory } from './market-history/market-history';
 import { iconUrl as makeIconUrl, preloadIcons } from '../../core/icon-url';
@@ -42,6 +43,7 @@ const CITY_COLORS: Record<string, string> = {
 })
 export class Flips {
   private readonly service = inject(MarketFlipsService);
+  private readonly proxy = inject(ProxyToggleService);
 
   readonly tiers = TIERS;
   readonly buyCities = BUY_CITIES;
@@ -58,6 +60,10 @@ export class Flips {
   readonly selTiers = signal<Set<number>>(new Set(TIERS));
   readonly buyCity = signal<string | null>(null);
   readonly buyCityOpen = signal(false);
+
+  // ===== Proxy =====
+  readonly proxyEnabled = signal(false);
+  readonly proxyChecking = signal(true);
 
   // ===== Resultado =====
   readonly result = signal<FlipResult | null>(null);
@@ -158,8 +164,19 @@ export class Flips {
   }
 
   constructor() {
-    // Carga inicial con los parámetros por defecto (como el inicio).
+    this.proxy.getStatus().subscribe((s) => {
+      this.proxyEnabled.set(s.enabled);
+      this.proxyChecking.set(false);
+    });
     this.fetchFlips();
+  }
+
+  toggleProxy(): void {
+    this.proxyChecking.set(true);
+    this.proxy.toggle(this.proxyEnabled()).subscribe((s) => {
+      this.proxyEnabled.set(s.enabled);
+      this.proxyChecking.set(false);
+    });
   }
 
   // ===== Escaneo =====

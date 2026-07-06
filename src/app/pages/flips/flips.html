@@ -5,6 +5,12 @@
       Compra barato en cualquier ciudad y vende siempre en el <strong>Black Market</strong> (nunca se
       compra allí).
     </p>
+    <p class="fp__proxy">
+      <button class="proxy-toggle" [class.proxy-toggle--on]="proxyEnabled()" [disabled]="proxyChecking()" type="button" (click)="toggleProxy()">
+        <span class="proxy-toggle__dot"></span>
+        <span class="proxy-toggle__label">{{ proxyEnabled() ? 'Proxy activo' : 'Proxy inactivo' }}</span>
+      </button>
+    </p>
   </header>
 
   <!-- ===== Panel 1: parámetros de escaneo ===== -->
