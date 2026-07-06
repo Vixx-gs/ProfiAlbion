@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, timeout, catchError, of } from 'rxjs';
 
 /** Precio de un item en una ubicación, tal cual lo devuelve AODP. */
 export interface PriceEntry {
@@ -47,6 +47,9 @@ export interface HistoryEntry {
 export class AlbionDataService {
   private readonly http = inject(HttpClient);
 
+  /** Proxy local (mitmproxy) para datos frescos del juego. */
+  private readonly localProxy = 'http://127.0.0.1:3456/api/v2/stats';
+
   /** Base de la API para el servidor de Europa. */
   private readonly base = 'https://europe.albion-online-data.com/api/v2/stats';
 
@@ -82,7 +85,16 @@ export class AlbionDataService {
       params.push('qualities=' + qualities.join(','));
     }
     const query = params.length ? '?' + params.join('&') : '';
-    return this.http.get<PriceEntry[]>(`${this.base}/prices/${ids}.json${query}`);
+    const aodpUrl = `${this.base}/prices/${ids}.json${query}`;
+    const localUrl = `${this.localProxy}/prices/${ids}.json${query}`;
+
+    return this.http.get<PriceEntry[]>(localUrl).pipe(
+      timeout(3000),
+      catchError(() => {
+        console.warn('[AlbionData] Proxy miss, falling back to AODP');
+        return this.http.get<PriceEntry[]>(aodpUrl);
+      }),
+    );
   }
 
   /** Precio del oro: últimas `count` entradas. */
