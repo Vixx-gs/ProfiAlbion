@@ -41,36 +41,19 @@ export class MarketHistory implements OnInit {
 
   /** Flip cuyo histórico se muestra. */
   readonly flip = input.required<MarketFlip>();
-  /** Icono alternativo (si no se pasa, usa el itemId del flip). */
-  readonly iconId = input<string>('');
-  /** Lista de ciudades (por defecto todas). */
-  readonly citiesInput = input<string[]>([]);
-  /** Item secundario para toggle (ej: cultivar → semilla). */
-  readonly toggleItemId = input<string>('');
-  /** Etiqueta del item secundario (ej: "Cultivo"). */
-  readonly toggleLabel = input<string>('');
-  /** Ruta wiki para el item principal (se abre al hacer click en el icono). */
-  readonly wikiRoute = input<string>('');
-  /** Ruta wiki para el item secundario (toggle). */
-  readonly wikiRouteToggle = input<string>('');
   /** Cerrar el modal. */
   readonly close = output<void>();
 
-  readonly showingRelated = signal(false);
-
   readonly scales: Scale[] = [
-    { label: '4 semanas', timeScale: 24, points: 28 },
-    { label: '7 días', timeScale: 6, points: 28 },
     { label: '24 horas', timeScale: 1, points: 24 },
+    { label: '7 días', timeScale: 6, points: 28 },
+    { label: '4 semanas', timeScale: 24, points: 28 },
   ];
 
   readonly scale = signal<Scale>(this.scales[0]);
 
   /** Ciudades disponibles para el filtro. */
-  readonly cities = computed<string[]>(() => {
-    const override = this.citiesInput();
-    return override.length ? override : AlbionDataService.CITIES;
-  });
+  readonly cities = AlbionDataService.CITIES;
   /** Ciudad cuyo histórico se consulta (por defecto la de venta del flip). */
   readonly selectedCity = signal<string>('');
 
@@ -112,23 +95,18 @@ export class MarketHistory implements OnInit {
   }
 
   private load(): void {
-    const id = this.currentItemId();
+    const f = this.flip();
     const city = this.cityName();
     const s = this.scale();
     this.loading.set(true);
     this.error.set(null);
     this.hover.set(null);
     this.sub?.unsubscribe();
-    this.sub = this.api.getHistory(id, [city], [this.flip().quality], s.timeScale).subscribe({
+    this.sub = this.api.getHistory(f.itemId, [city], [f.quality], s.timeScale).subscribe({
       next: (entries) => {
         const entry = entries.find((e) => e.location === city) ?? entries[0];
-        const raw = entry?.data ?? [];
-        const cutoff = Date.now() - s.points * s.timeScale * 3600000;
-        const filtered = raw.filter((p) => {
-          const t = new Date(p.timestamp + 'Z').getTime();
-          return t >= cutoff;
-        });
-        this.points.set(filtered);
+        const data = (entry?.data ?? []).slice(-s.points);
+        this.points.set(data);
         this.loading.set(false);
       },
       error: () => {
@@ -223,20 +201,7 @@ export class MarketHistory implements OnInit {
     this.close.emit();
   }
 
-  /** ID del item actual según el toggle. */
-  readonly currentItemId = computed<string>(() =>
-    this.showingRelated() ? this.toggleItemId() : this.flip().itemId,
-  );
-
-  /** Ruta wiki activa según el toggle. */
-  readonly activeWikiRoute = computed(() =>
-    this.showingRelated() ? this.wikiRouteToggle() : this.wikiRoute(),
-  );
-
-  setShowingRelated(v: boolean): void {
-    this.showingRelated.set(v);
-    this.load();
-  }
+  /** Icono del item. */
   iconUrl(): string {
     const id = this.showingRelated() && this.toggleItemId()
       ? this.toggleItemId()

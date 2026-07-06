@@ -4,13 +4,7 @@
   <button class="mh__close" type="button" title="Cerrar" (click)="onClose()">✕</button>
 
   <header class="mh__head">
-    @if (activeWikiRoute(); as route) {
-      <a class="mh__icon-link" [href]="route" target="_blank" rel="noopener" title="Abrir en Wiki">
-        <img class="mh__icon" [src]="iconUrl()" [alt]="flip().name" width="48" height="48" />
-      </a>
-    } @else {
-      <img class="mh__icon" [src]="iconUrl()" [alt]="flip().name" width="48" height="48" />
-    }
+    <img class="mh__icon" [src]="iconUrl()" [alt]="flip().name" width="48" height="48" />
     <div>
       <h3 class="mh__title">{{ flip().name }}</h3>
       <p class="mh__sub">Historial de mercado · {{ cityName() }}</p>
@@ -19,12 +13,6 @@
 
   <!-- Controles -->
   <div class="mh__controls">
-    @if (toggleItemId()) {
-      <div class="mh__seg">
-        <button class="seg" type="button" [class.seg--on]="!showingRelated()" (click)="setShowingRelated(false)">Semilla</button>
-        <button class="seg" type="button" [class.seg--on]="showingRelated()" (click)="setShowingRelated(true)">{{ toggleLabel() }}</button>
-      </div>
-    }
     <div class="mh__seg">
       @for (s of scales; track s.timeScale) {
         <button class="seg" type="button" [class.seg--on]="scale().timeScale === s.timeScale" (click)="setScale(s)">
@@ -35,7 +23,7 @@
     <label class="mh__city">
       <span class="mh__city-label">Ciudad</span>
       <select class="mh__select" (change)="setCity($event.target)">
-        @for (c of cities(); track c) {
+        @for (c of cities; track c) {
           <option [value]="c" [selected]="selectedCity() === c">{{ c }}</option>
         }
       </select>

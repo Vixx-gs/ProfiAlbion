@@ -1,8 +1,0 @@
-Para empezar todas las conversaciones:
-    - Analiza el proyecto
-    - voy a subir actualizaciones a mi proyecto de github en la rama javier. Este es el link del poryecto: https://github.com/Vixx-gs/ProfiAlbion.git
-
-Para lanzar la pagina:
-
-    - npm run start
-    - http://localhost:4200/

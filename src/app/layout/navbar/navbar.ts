@@ -45,7 +45,7 @@ export class Navbar {
       sections: [
         {
           links: [
-            { label: 'Calculadora de Cultivos', iconId: 'T8_PUMPKIN', shortcut: 'Ctrl + 1', route: '/cultivos' },
+            { label: 'Calculadora de Agricultura', iconId: 'T8_PUMPKIN', shortcut: 'Ctrl + 1' },
             { label: 'Calculadora de Animales', iconId: 'T8_FARM_OX_GROWN', shortcut: 'Ctrl + 2' },
             { label: 'Calculadora de Trabajadores', iconId: 'T8_JOURNAL_WOOD' },
             { label: 'Calculadora de Encantamiento', iconId: 'T8_RUNE' },
@@ -72,7 +72,6 @@ export class Navbar {
             { label: 'Historial del precio del oro', iconId: 'T4_SKILLBOOK_STANDARD' },
             { label: 'Planificador de crafteo', iconId: 'T8_2H_HAMMER', shortcut: 'Ctrl + 7' },
             { label: 'Gestión de maestrías', iconId: 'T8_RUNE', route: '/maestrias' },
-            { label: 'Wiki de cultivos y semillas', iconId: 'T8_PUMPKIN', route: '/wiki' },
           ],
         },
       ],
