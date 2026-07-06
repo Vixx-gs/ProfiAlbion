@@ -65,7 +65,7 @@ export class Navbar {
           links: [
             { label: 'Comprobador de precios', iconId: 'T8_JOURNAL_WOOD', shortcut: 'Ctrl + 8', route: '/precios' },
             { label: 'Precios de recursos', iconId: 'T8_METALBAR' },
-            { label: 'Mapa de Avalon', iconId: 'T8_RELIC' },
+{ label: 'Mapa de Avalon', iconId: 'T8_RELIC' },
             { label: 'Gestión de islas', iconId: 'T8_PUMPKIN' },
             { label: 'Mercado de la isla', iconId: 'T8_BAG' },
             { label: 'Temporizadores', iconId: 'T8_POTION_LAVA' },
@@ -99,6 +99,6 @@ export class Navbar {
       ],
     },
     { label: 'Tablas', items: ['Items', 'Recursos', 'Encantamientos'] },
-    { label: 'Mapa', items: ['Mapa del mundo', 'Mapa de Avalon'] },
+{ label: 'Mapa', items: ['Mapa del mundo', 'Mapa de Avalon'] },
   ];
 }

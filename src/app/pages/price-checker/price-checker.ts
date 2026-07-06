@@ -2,7 +2,7 @@ import { Component, HostListener, computed, inject, signal } from '@angular/core
 import { DecimalPipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { AlbionDataService, HistoryEntry, PriceEntry } from '../../core/albion-data.service';
-import { ALL_ITEMS, ENCHANTS, ITEM_BY_ID, baseOf, displayName } from '../../core/items.catalog';
+import { ALL_ITEMS, ENCHANTS, ITEM_BY_ID, baseOf, displayName, enchantOf } from '../../core/items.catalog';
 import { MarketFlip } from '../../core/market-flips.service';
 import { MarketHistory } from '../flips/market-history/market-history';
 import { iconUrl as makeIconUrl } from '../../core/icon-url';
@@ -105,6 +105,28 @@ export class PriceChecker {
   readonly suggestions = computed<ItemOption[]>(() => {
     const q = this.search().trim().toLowerCase();
     if (!q) return [];
+
+    const tierMatch = /t\s*(\d+)(?:\.(\d+))?/i.exec(q);
+    if (tierMatch) {
+      const tier = parseInt(tierMatch[1]);
+      const ench = tierMatch[2] !== undefined ? parseInt(tierMatch[2]) : null;
+
+      const categoryText = q.replace(/t\s*\d+(?:\.\d+)?/i, '').trim();
+
+      const matchedBaseIds = new Set<string>();
+      for (const item of ALL_ITEMS) {
+        if (categoryText && !item.name.toLowerCase().includes(categoryText)) continue;
+        if (item.tier !== tier) continue;
+        matchedBaseIds.add(item.id);
+      }
+
+      return this.itemOptions.filter((o) => {
+        if (!matchedBaseIds.has(baseOf(o.id))) return false;
+        if (ench !== null && enchantOf(o.id) !== ench) return false;
+        return true;
+      }).slice(0, 60);
+    }
+
     return this.itemOptions.filter((o) => o.name.toLowerCase().includes(q)).slice(0, 60);
   });
 
