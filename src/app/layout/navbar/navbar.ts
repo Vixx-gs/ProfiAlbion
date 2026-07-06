@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { iconUrl } from '../../core/icon-url';
 
 interface NavLink {
   label: string;
@@ -33,6 +34,10 @@ interface NavMenu {
 })
 export class Navbar {
   readonly version = 'v0.1.0';
+
+  iconUrl(id: string): string {
+    return iconUrl(id, 64);
+  }
 
   readonly menus: NavMenu[] = [
     {

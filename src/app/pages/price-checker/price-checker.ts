@@ -5,6 +5,7 @@ import { AlbionDataService, HistoryEntry, PriceEntry } from '../../core/albion-d
 import { ALL_ITEMS, ENCHANTS, ITEM_BY_ID, baseOf, displayName } from '../../core/items.catalog';
 import { MarketFlip } from '../../core/market-flips.service';
 import { MarketHistory } from '../flips/market-history/market-history';
+import { iconUrl as makeIconUrl } from '../../core/icon-url';
 
 /** Opción del buscador: una variante de item (con tier y encantamiento). */
 interface ItemOption {
@@ -342,7 +343,7 @@ export class PriceChecker {
   }
 
   iconUrl(id: string): string {
-    return `https://render.albiononline.com/v1/item/${id}.png?size=120`;
+    return makeIconUrl(id, 120);
   }
   qualityLabel(q: number): string {
     return this.qualityLabels[q] ?? 'Normal';

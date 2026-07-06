@@ -5,14 +5,69 @@ export interface MasteryDef {
   label: string;
   iconId: string;
   maxLevel: number;
+  /** Sub-maestrías dentro de esta categoría (cada una con su propio nivel 0-100). */
+  subMasteries?: MasteryDef[];
 }
+
+/** Sub-maestrías de Alquimia (cada elaborador tiene su propio nivel, máx. 100). */
+const ALCHEMY_SUB_MASTERIES: MasteryDef[] = [
+  { key: 'alchemist_mastery', label: 'Alquimia', iconId: 'T1_ALCHEMY_EXTRACT_LEVEL3', maxLevel: 100 },
+  { key: 'heal_brewer', label: 'Curación', iconId: 'T4_POTION_HEAL', maxLevel: 100 },
+  { key: 'energy_brewer', label: 'Energía', iconId: 'T4_POTION_ENERGY', maxLevel: 100 },
+  { key: 'gigantify_brewer', label: 'Gigantismo', iconId: 'T7_POTION_REVIVE', maxLevel: 100 },
+  { key: 'resistance_brewer', label: 'Resistencia', iconId: 'T7_POTION_STONESKIN', maxLevel: 100 },
+  { key: 'sticky_brewer', label: 'Pegajosas', iconId: 'T5_POTION_SLOWFIELD', maxLevel: 100 },
+  { key: 'poison_brewer', label: 'Venenosas', iconId: 'T6_POTION_COOLDOWN', maxLevel: 100 },
+  { key: 'invisibility_brewer', label: 'Invisibilidad', iconId: 'T8_POTION_CLEANSE', maxLevel: 100 },
+  { key: 'calming_brewer', label: 'Calmantes', iconId: 'T5_POTION_MOB_RESET', maxLevel: 100 },
+  { key: 'cleansing_brewer', label: 'Purificantes', iconId: 'T5_POTION_CLEANSE2', maxLevel: 100 },
+  { key: 'acid_brewer', label: 'Ácidas', iconId: 'T5_POTION_ACID', maxLevel: 100 },
+  { key: 'berserk_brewer', label: 'Furia', iconId: 'T6_POTION_BERSERK', maxLevel: 100 },
+  { key: 'hellfire_brewer', label: 'Fuego Infernal', iconId: 'T6_POTION_LAVA', maxLevel: 100 },
+  { key: 'gathering_brewer', label: 'Recolección', iconId: 'T6_POTION_GATHER', maxLevel: 100 },
+  { key: 'tornado_brewer', label: 'Tornado', iconId: 'T6_POTION_TORNADO', maxLevel: 100 },
+  { key: 'bootlegger', label: 'Alcohol', iconId: 'T8_ALCOHOL', maxLevel: 100 },
+];
+
+/** Sub-maestrías de Ganadero. */
+const BREEDER_SUB_MASTERIES: MasteryDef[] = [
+  { key: 'breeder_mastery', label: 'Ganadero', iconId: 'T4_FARM_OX_GROWN', maxLevel: 100 },
+  { key: 'sheep', label: 'Ovejas', iconId: 'T6_FARM_SHEEP_GROWN', maxLevel: 100 },
+  { key: 'pig', label: 'Cerdos', iconId: 'T7_FARM_PIG_GROWN', maxLevel: 100 },
+  { key: 'cow', label: 'Vacas', iconId: 'T8_FARM_COW_GROWN', maxLevel: 100 },
+  { key: 'horse', label: 'Caballos', iconId: 'T8_FARM_HORSE_GROWN', maxLevel: 100 },
+  { key: 'ox', label: 'Bueyes', iconId: 'T8_FARM_OX_GROWN', maxLevel: 100 },
+  { key: 'chicken', label: 'Gallinas', iconId: 'T3_FARM_CHICKEN_GROWN', maxLevel: 100 },
+  { key: 'goat', label: 'Cabras', iconId: 'T4_FARM_GOAT_GROWN', maxLevel: 100 },
+  { key: 'goose', label: 'Gansos', iconId: 'T5_FARM_GOOSE_GROWN', maxLevel: 100 },
+  { key: 'rare', label: 'Animales Raros', iconId: 'T8_FARM_DIREWOLF_GROWN', maxLevel: 100 },
+];
+
+/** Sub-maestrías de Cocina. */
+const COOKING_SUB_MASTERIES: MasteryDef[] = [
+  { key: 'chef', label: 'Chef', iconId: 'T4_MEAL_STEW', maxLevel: 100 },
+  { key: 'omelette', label: 'Tortilla', iconId: 'T7_MEAL_OMELETTE', maxLevel: 100 },
+  { key: 'pie', label: 'Pastel', iconId: 'T7_MEAL_PIE', maxLevel: 100 },
+  { key: 'salad', label: 'Ensalada', iconId: 'T6_MEAL_SALAD', maxLevel: 100 },
+  { key: 'sandwich', label: 'Sándwich', iconId: 'T8_MEAL_SANDWICH', maxLevel: 100 },
+  { key: 'soup', label: 'Sopa', iconId: 'T5_MEAL_SOUP', maxLevel: 100 },
+  { key: 'stew', label: 'Estofado', iconId: 'T8_MEAL_STEW', maxLevel: 100 },
+  { key: 'roast', label: 'Asado', iconId: 'T7_MEAL_ROAST', maxLevel: 100 },
+  { key: 'harvester', label: 'Ingrediente', iconId: 'T1_MEAL_GRILLEDFISH', maxLevel: 100 },
+];
 
 /** Catálogo completo de maestrías obtenibles, en el mismo orden que en el juego. */
 export const MASTERIES_CATALOG: MasteryDef[] = [
   // Refinado y otras profesiones
-  { key: 'alchemy', label: 'Alquimia', iconId: 'T8_POTION_LAVA', maxLevel: 1500 },
-  { key: 'cooking', label: 'Cocina', iconId: 'T8_MEAL_STEW', maxLevel: 900 },
-  { key: 'animal_breeder', label: 'Criador de animales', iconId: 'T8_FARM_OX_GROWN', maxLevel: 900 },
+  {
+    key: 'alchemy',
+    label: 'Alquimia',
+    iconId: 'T6_POTION_HEAL',
+    maxLevel: 1500,
+    subMasteries: ALCHEMY_SUB_MASTERIES,
+  },
+  { key: 'cooking', label: 'Cocina', iconId: 'T8_MEAL_STEW', maxLevel: 900, subMasteries: COOKING_SUB_MASTERIES },
+  { key: 'animal_breeder', label: 'Ganadero', iconId: 'T8_FARM_OX_GROWN', maxLevel: 900, subMasteries: BREEDER_SUB_MASTERIES },
   { key: 'crop_farmer', label: 'Agricultor', iconId: 'T8_PUMPKIN', maxLevel: 800 },
   { key: 'herbalist', label: 'Herbolario', iconId: 'T8_BAG_INSIGHT', maxLevel: 700 },
   { key: 'fiber_weaver', label: 'Tejedor de fibra', iconId: 'T8_JOURNAL_FIBER', maxLevel: 500 },

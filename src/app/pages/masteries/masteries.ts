@@ -1,6 +1,6 @@
 import { Component, HostListener, computed, effect, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MASTERIES_CATALOG } from './masteries.catalog';
+import { MASTERIES_CATALOG, MasteryDef } from './masteries.catalog';
 
 /** Ficha de personaje guardada localmente en el navegador. */
 interface CharacterSheet {
@@ -96,6 +96,46 @@ export class Masteries {
 
   setLevel(profession: string, level: number): void {
     this.draftLevels.update((levels) => ({ ...levels, [profession]: level }));
+  }
+
+  // ===== Sub-maestrías (p.ej. los elaboradores de Alquimia) =====
+
+  /** Clave compuesta bajo la que se guarda el nivel de una sub-maestría. */
+  private subKey(parentKey: string, subKey: string): string {
+    return `${parentKey}.${subKey}`;
+  }
+
+  subLevel(parentKey: string, subKey: string): number {
+    return this.draftLevels()[this.subKey(parentKey, subKey)] ?? 0;
+  }
+
+  setSubLevel(parentKey: string, subKey: string, max: number, value: number): void {
+    const clamped = Math.max(0, Math.min(max, Math.round(value) || 0));
+    this.setLevel(this.subKey(parentKey, subKey), clamped);
+  }
+
+  onSubSlider(parentKey: string, subKey: string, max: number, target: EventTarget | null): void {
+    this.setSubLevel(parentKey, subKey, max, Number((target as HTMLInputElement).value));
+  }
+
+  incSub(parentKey: string, subKey: string, max: number): void {
+    this.setSubLevel(parentKey, subKey, max, this.subLevel(parentKey, subKey) + 1);
+  }
+
+  decSub(parentKey: string, subKey: string, max: number): void {
+    this.setSubLevel(parentKey, subKey, max, this.subLevel(parentKey, subKey) - 1);
+  }
+
+  maxSub(parentKey: string, subKey: string, max: number): void {
+    this.setSubLevel(parentKey, subKey, max, max);
+  }
+
+  /** Nivel total de una maestría: suma de sus sub-maestrías, o su propio nivel si no las tiene. */
+  totalFor(m: MasteryDef): number {
+    if (m.subMasteries?.length) {
+      return m.subMasteries.reduce((sum, s) => sum + this.subLevel(m.key, s.key), 0);
+    }
+    return this.draftLevels()[m.key] ?? 0;
   }
 
   saveChanges(): void {

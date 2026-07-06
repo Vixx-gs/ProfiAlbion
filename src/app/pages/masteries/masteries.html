@@ -122,7 +122,7 @@
 
   <div class="mastery-list">
     @for (m of masteries; track m.key) {
-      <div class="mastery-row" [class.mastery-row--open]="expanded().has(m.key)">
+        <div class="mastery-row" [class.mastery-row--open]="expanded().has(m.key)">
         <button class="mastery-row__head" type="button" (click)="toggleExpanded(m.key)">
           <img
             class="mastery-row__icon"
@@ -133,7 +133,7 @@
             height="32"
           />
           <span class="mastery-row__label">
-            {{ m.label }} ({{ draftLevels()[m.key] ?? 0 }}/{{ m.maxLevel }})
+            {{ m.label }} ({{ totalFor(m) }}/{{ m.maxLevel }})
           </span>
           <svg
             class="mastery-row__caret"
@@ -147,7 +147,52 @@
 
         @if (expanded().has(m.key)) {
           <div class="mastery-row__body">
-            <p class="mastery-row__placeholder">Próximamente.</p>
+            @if (m.subMasteries?.length) {
+              <div class="mastery-sub-grid">
+                @for (s of m.subMasteries; track s.key) {
+                    <div class="mastery-sub" [class.mastery-sub--lead]="$first">
+                    <div class="mastery-sub__head">
+                      <img
+                        class="mastery-sub__icon"
+                        [src]="'https://render.albiononline.com/v1/item/' + s.iconId + '.png?size=64'"
+                        [alt]="s.label"
+                        loading="lazy"
+                        width="52"
+                        height="52"
+                      />
+                      <span class="mastery-sub__label">{{ s.label }}</span>
+                      <span class="mastery-sub__level">{{ subLevel(m.key, s.key) }} / {{ s.maxLevel }}</span>
+                    </div>
+                    <div class="mastery-sub__sliderrow">
+                      <input
+                        type="range"
+                        min="0"
+                        [max]="s.maxLevel"
+                        [value]="subLevel(m.key, s.key)"
+                        (input)="onSubSlider(m.key, s.key, s.maxLevel, $event.target)"
+                      />
+                      <div class="mastery-sub__btns">
+                        <button class="mastery-sub__btn" type="button" (click)="decSub(m.key, s.key, s.maxLevel)">
+                          −
+                        </button>
+                        <button class="mastery-sub__btn" type="button" (click)="incSub(m.key, s.key, s.maxLevel)">
+                          +
+                        </button>
+                        <button
+                          class="mastery-sub__btn mastery-sub__btn--max"
+                          type="button"
+                          (click)="maxSub(m.key, s.key, s.maxLevel)"
+                        >
+                          Max
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="mastery-row__placeholder">Próximamente.</p>
+            }
           </div>
         }
       </div>
