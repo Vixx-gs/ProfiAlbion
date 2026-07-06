@@ -253,7 +253,7 @@ export class MarketFlipsService {
     const out: MarketFlip[] = [];
     for (const buy of list) {
       if (buy.city === 'Black Market') continue;
-      const profit = this.netSell(black.sell_price_min) - buy.sell_price_min;
+      const profit = (black.buy_price_max || black.sell_price_min) - buy.sell_price_min;
       if (profit <= 0) continue;
 
       out.push({
@@ -300,7 +300,7 @@ export class MarketFlipsService {
         const cheapest = cities.reduce((a, b) => (a.sell_price_min < b.sell_price_min ? a : b));
 
         const buyPrice = cheapest.sell_price_min;
-        const profit = this.netSell(black.sell_price_min) - buyPrice;
+        const profit = (black.buy_price_max || black.sell_price_min) - buyPrice;
         if (profit <= 0) continue;
 
         flips.push({

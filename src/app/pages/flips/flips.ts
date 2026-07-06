@@ -20,6 +20,8 @@ interface ItemOption {
   name: string;
 }
 
+const BUY_CITIES = ['Bridgewatch', 'Martlock', 'Thetford', 'Lymhurst', 'Fort Sterling', 'Caerleon', 'Brecilien'];
+
 /** Color identificativo de cada ciudad (puntos de la lista de ubicaciones). */
 const CITY_COLORS: Record<string, string> = {
   'Fort Sterling': '#d8dde8',
@@ -42,6 +44,7 @@ export class Flips {
   private readonly service = inject(MarketFlipsService);
 
   readonly tiers = TIERS;
+  readonly buyCities = BUY_CITIES;
   readonly qualities = [
     { id: 1, label: 'Normal' },
     { id: 2, label: 'Bueno' },
@@ -53,6 +56,8 @@ export class Flips {
   // ===== Parámetros de escaneo (panel 1, requieren "Fetch Flips") =====
   readonly selQualities = signal<Set<number>>(new Set([1, 2, 3, 4, 5]));
   readonly selTiers = signal<Set<number>>(new Set(TIERS));
+  readonly buyCity = signal<string | null>(null);
+  readonly buyCityOpen = signal(false);
 
   // ===== Resultado =====
   readonly result = signal<FlipResult | null>(null);
@@ -118,12 +123,14 @@ export class Flips {
     const q = this.search().trim().toLowerCase();
     const mp = this.minProfit();
     const hid = this.hidden();
+    const city = this.buyCity();
 
     const arr = source.filter(
       (f) =>
         f.profit >= mp &&
         (!q || f.name.toLowerCase().includes(q)) &&
-        !hid.has(this.rowKey(f)),
+        !hid.has(this.rowKey(f)) &&
+        (!city || f.buyCity === city),
     );
 
     const by = this.sortBy();
@@ -178,10 +185,16 @@ export class Flips {
       next: (res) => {
         // Cada emisión es un resultado parcial que va creciendo.
         this.result.set(res);
-        this.loading.set(false);
-        // Precargar iconos de los primeros resultados visibles
+        // No marcar como "cargado" hasta que tengamos datos reales o el
+        // escaneo termine, para evitar mostrar "sin oportunidades" mientras
+        // aún están llegando lotes de precios.
+        if (res.flips.length > 0) {
+          this.loading.set(false);
+        }
         if (res.flips.length) {
-          preloadIcons(res.flips.slice(0, this.PAGE_STEP).map((f) => f.itemId), 64);
+          try {
+            preloadIcons(res.flips.slice(0, this.PAGE_STEP).map((f) => f.itemId), 64);
+          } catch { /* fallo de precarga no crítico */ }
         }
       },
       error: () => {
@@ -189,7 +202,10 @@ export class Flips {
         this.loading.set(false);
         this.streaming.set(false);
       },
-      complete: () => this.streaming.set(false),
+      complete: () => {
+        this.streaming.set(false);
+        this.loading.set(false);
+      },
     });
   }
 
@@ -206,6 +222,12 @@ export class Flips {
     const next = new Set(sig());
     next.has(val) ? next.delete(val) : next.add(val);
     sig.set(next);
+  }
+
+  selectBuyCity(city: string | null): void {
+    this.buyCity.set(city);
+    this.buyCityOpen.set(false);
+    this.resetPage();
   }
 
   // ===== Filtros de cliente =====
@@ -248,6 +270,7 @@ export class Flips {
     // Panel 1 a por defecto.
     this.selQualities.set(new Set([1, 2, 3, 4, 5]));
     this.selTiers.set(new Set(TIERS));
+    this.buyCity.set(null);
     // Panel 2 a por defecto.
     this.search.set('');
     this.sortBy.set('update');
@@ -348,6 +371,7 @@ export class Flips {
   closePopover(): void {
     this.openPopover.set(null);
     this.searchOpen.set(false);
+    this.buyCityOpen.set(false);
   }
 
   // ===== Atajo de teclado: "A" = Fetch Flips =====

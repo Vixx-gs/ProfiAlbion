@@ -12,8 +12,29 @@
     <div class="scan__grid">
       <div class="grp">
         <span class="grp__title">Ruta</span>
-        <div class="route">
-          <span class="route__pill">Cualquier ciudad</span>
+        <div class="route" (click)="$event.stopPropagation()">
+          <button class="route__pill route__pill--sel" type="button" (click)="buyCityOpen.set(!buyCityOpen())">
+            @if (buyCity(); as c) {
+              <span class="citydot" [style.background]="cityColor(c)"></span>{{ c }}
+            } @else {
+              Cualquier ciudad
+            }
+            <svg class="route__caret" viewBox="0 0 12 12" width="10" height="10">
+              <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+          </button>
+          @if (buyCityOpen()) {
+            <div class="route__list">
+              <button class="route__opt" type="button" (click)="selectBuyCity(null)">
+                {{ buyCity() === null ? '✓ ' : '' }}Cualquier ciudad
+              </button>
+              @for (c of buyCities; track c) {
+                <button class="route__opt" type="button" (click)="selectBuyCity(c)">
+                  {{ buyCity() === c ? '✓ ' : '' }}<span class="citydot" [style.background]="cityColor(c)"></span>{{ c }}
+                </button>
+              }
+            </div>
+          }
           <svg class="route__arrow" viewBox="0 0 16 10" width="16" height="10">
             <path d="M1 5h13M9 1l5 4-5 4" fill="none" stroke="currentColor" stroke-width="1.6" />
           </svg>
@@ -206,19 +227,19 @@
                 <td>
                   <span class="city"><span class="citydot" [style.background]="cityColor(f.sellCity)"></span>{{ f.sellCity }}</span>
                   <span class="sell-price">
-                    <span class="price">{{ f.sellPrice | number: '1.0-0' }} <i>plata</i></span>
-                    <button class="pop-toggle" type="button" title="Ver compra instantánea" (click)="togglePopover(rowKey(f), $event)">
+                    <span class="price">{{ f.sellBuyMax | number: '1.0-0' }} <i>plata</i></span>
+                    <button class="pop-toggle" type="button" title="Ver orden de venta" (click)="togglePopover(rowKey(f), $event)">
                       <svg viewBox="0 0 12 12" width="11" height="11">
                         <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
                       </svg>
                     </button>
                     @if (openPopover() === rowKey(f)) {
                       <span class="pop" (click)="$event.stopPropagation()">
-                        <span class="pop__label">Compra instantánea</span>
-                        @if (f.sellBuyMax) {
-                          <span class="pop__price">{{ f.sellBuyMax | number: '1.0-0' }} <i>plata</i></span>
+                        <span class="pop__label">Orden de venta</span>
+                        @if (f.sellPrice) {
+                          <span class="pop__price">{{ f.sellPrice | number: '1.0-0' }} <i>plata</i></span>
                         } @else {
-                          <span class="pop__empty">Sin órdenes de compra</span>
+                          <span class="pop__empty">Sin órdenes de venta</span>
                         }
                       </span>
                     }
