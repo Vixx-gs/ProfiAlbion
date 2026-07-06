@@ -1,0 +1,237 @@
+<section class="container page">
+  <div class="hero-sm">
+    <h1 class="hero-sm__title">Calculadora de Cultivos</h1>
+    <p class="hero-sm__subtitle">Calcula el profit de cultivar en tu isla. Selecciona el cultivo, ajusta los precios del mercado y obtén el beneficio neto por cosecha.</p>
+  </div>
+
+  <div class="calc-layout">
+    <!-- Panel izquierdo: selección y parámetros -->
+    <div class="calc-panel">
+      <!-- Tabs: Agricultor / Herborista -->
+      <div class="tabs">
+        <button
+          class="tab"
+          type="button"
+          [class.tab--active]="tab() === 'crops'"
+          (click)="selectTab('crops')"
+        >Agricultor</button>
+        <button
+          class="tab"
+          type="button"
+          [class.tab--active]="tab() === 'herbs'"
+          (click)="selectTab('herbs')"
+        >Herborista</button>
+      </div>
+
+      <!-- Items (cultivos o hierbas) -->
+      <div class="panel-section">
+        <div class="crop-options">
+          @for (item of currentItems(); track item.id) {
+            <button
+              class="crop-opt"
+              type="button"
+              [class.crop-opt--active]="currentSelected().id === item.id"
+              (click)="selectItem(item)"
+              (dblclick)="openHistory(item)"
+            >
+              <img
+                class="crop-opt__icon"
+                [src]="'https://render.albiononline.com/v1/item/' + item.iconId + '.png?size=64'"
+                [alt]="item.name"
+                loading="lazy"
+                width="56"
+                height="56"
+                decoding="async"
+              />
+              <span class="crop-opt__name">{{ item.name }}</span>
+              <span class="crop-opt__meta">{{ ago(harvestDates()[item.harvestId] ?? '') }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Ciudad de la isla -->
+      <div class="panel-section">
+        <h2 class="panel-section__title">Isla</h2>
+        <div class="city-options">
+          @for (city of plantCities; track city) {
+            <button
+              class="city-opt"
+              type="button"
+              [class.city-opt--active]="plantCity() === city"
+              (click)="setPlantCity(city)"
+            >
+              <span class="city-opt__dot" [style.background]="cityColor(city)"></span>
+              {{ city }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Ciudad de mercado -->
+      <div class="panel-section">
+        <h2 class="panel-section__title">Mercado</h2>
+        <div class="city-options">
+          @for (city of marketCities; track city) {
+            <button
+              class="city-opt"
+              type="button"
+              [class.city-opt--active]="marketCity() === city"
+              (click)="setMarketCity(city)"
+            >
+              <span class="city-opt__dot" [style.background]="cityColor(city)"></span>
+              {{ city }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Parámetros -->
+      <div class="panel-section">
+        <h2 class="panel-section__title">Parámetros</h2>
+
+        <div class="toggles">
+          <label class="toggle">
+            <input type="checkbox" [checked]="premium()" (change)="premium.set(!premium())" />
+            <span class="toggle__label">Premium</span>
+          </label>
+          <label class="toggle toggle--focus">
+            <input type="checkbox" [checked]="focus()" (change)="focus.set(!focus())" />
+            <span class="toggle__label">Foco</span>
+            @if (focus()) {
+              <input class="toggle__input" type="number" min="0" [ngModel]="focusCostInput()" (ngModelChange)="focusCostInput.set($event)" />
+            }
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Parcelas</span>
+          <input class="field__input" type="number" min="1" max="120" [ngModel]="plots()" (ngModelChange)="plots.set($event)" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Precio semilla</span>
+          <input class="field__input" type="number" min="0" [ngModel]="seedPrice()" (ngModelChange)="seedPrice.set($event)" placeholder="0" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Precio venta cultivo unidad</span>
+          <input class="field__input" type="number" min="0" [ngModel]="yieldPrice()" (ngModelChange)="yieldPrice.set($event)" placeholder="0" />
+        </label>
+      </div>
+    </div>
+
+    <!-- Panel derecho: resultados -->
+    <div class="calc-panel calc-panel--result">
+      <!-- Datos del cultivo seleccionado -->
+      <div class="panel-section">
+        <h2 class="panel-section__title">{{ currentSelected().name }}</h2>
+        <div class="result-detail">
+          <div class="result-detail__row">
+            <span>Rendimiento de semilla base</span>
+            <span>{{ currentSelected().seedsPerHarvest * 100 | number:'1.1-1' }} %</span>
+          </div>
+          <div class="result-detail__row">
+            <span>Bono de isla</span>
+            <span>{{ result().biomeBonus > 1 ? '10' : '0' }} %</span>
+          </div>
+          <div class="result-detail__row">
+            <span>Bono diario de riego</span>
+            <span>{{ focus() ? (currentSelected().focusBonus * 100 | number:'1.0-0') : '0' }} %</span>
+          </div>
+          <div class="result-detail__row">
+            <span>Coste diario de riego (foco)</span>
+            <span>{{ focus() ? (focusCostInput() | number:'1.0-0') : '0' }} <i>foco</i></span>
+          </div>
+          <div class="result-detail__row">
+            <span>Rendimiento del producto</span>
+            <span>{{ result().yieldRangeMin }} – {{ result().yieldRangeMax }} / parcela</span>
+          </div>
+          <div class="result-detail__row">
+            <span>Rendimiento de semillas (total)</span>
+            <span>{{ (currentSelected().seedsPerHarvest + (focus() ? currentSelected().focusBonus : 0)) * 100 | number:'1.1-1' }} %</span>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="panel-section__title">Resultados</h2>
+
+      <div class="result-summary">
+        <div class="result-summary__city">
+          <span class="city-opt__dot" [style.background]="cityColor(plantCity())"></span>
+          Isla: {{ plantCity() }}
+        </div>
+        <div class="result-summary__city">
+          <span class="city-opt__dot" [style.background]="cityColor(marketCity())"></span>
+          Mercado: {{ marketCity() }}
+        </div>
+      </div>
+
+      <div class="result-card result-card--full">
+        <span class="result-card__label">Inversión total</span>
+        <span class="result-card__value">{{ result().totalCost | number:'1.0-0' }} <i>plata</i></span>
+      </div>
+      <div class="result-row">
+        <div class="result-card"
+          [class.roi-negative]="result().bestRoi < 0"
+          [class.roi-high]="result().bestRoi > 70">
+          <span class="result-card__label">Mejor caso de rendimiento del producto <em>(semillas no incluidas)</em></span>
+          <span class="result-card__value result-card__value--row">
+            <span>{{ result().bestTotalIncome | number:'1.0-0' }} <i>Ingreso total</i></span>
+            <span [class.result-card--negative]="result().bestProfit < 0">
+              {{ result().bestProfit >= 0 ? '+' : '' }}{{ result().bestProfit | number:'1.0-0' }} <i>Beneficio neto</i>
+            </span>
+            <span>{{ result().bestRoi | number:'1.1-1' }} % <i>ROI</i></span>
+          </span>
+        </div>
+        <div class="result-card"
+          [class.roi-negative]="result().worstRoi < 0"
+          [class.roi-high]="result().worstRoi > 70">
+          <span class="result-card__label">Peor caso de rendimiento del producto <em>(semillas no incluidas)</em></span>
+          <span class="result-card__value result-card__value--row">
+            <span>{{ result().worstTotalIncome | number:'1.0-0' }} <i>Ingreso total</i></span>
+            <span [class.result-card--negative]="result().worstProfit < 0">
+              {{ result().worstProfit >= 0 ? '+' : '' }}{{ result().worstProfit | number:'1.0-0' }} <i>Beneficio neto</i>
+            </span>
+            <span>{{ result().worstRoi | number:'1.1-1' }} % <i>ROI</i></span>
+          </span>
+          </div>
+      </div>
+
+      <div class="result-detail">
+        <div class="result-detail__row">
+          <span>Semillas necesarias</span>
+          <span>{{ result().seedsNeeded | number:'1.0-0' }}</span>
+        </div>
+          <div class="result-detail__row">
+            <span>Semillas devueltas</span>
+            <span>{{ result().seedsBackWorst | number:'1.0-0' }} – {{ result().seedsBack | number:'1.0-0' }}</span>
+          </div>
+          <div class="result-detail__row">
+            <span>Cosecha total</span>
+            <span>{{ result().worstGrossYield | number:'1.0-0' }} – {{ result().bestGrossYield | number:'1.0-0' }}</span>
+          </div>
+        @if (focus()) {
+          <div class="result-detail__row">
+            <span>Cantidad de foco necesario</span>
+            <span>{{ result().totalFocus | number:'1.0-0' }}</span>
+          </div>
+        }
+      </div>
+
+    </div>
+  </div>
+</section>
+
+@if (historyCrop(); as flip) {
+  <app-market-history
+    [flip]="flip"
+    [iconId]="historyIconId()"
+    [citiesInput]="marketCities"
+    [toggleItemId]="currentSelected().harvestId"
+    toggleLabel="Cultivo"
+    [wikiRoute]="wikiSeedRoute()"
+    [wikiRouteToggle]="wikiHarvestRoute()"
+    (close)="closeHistory()"
+  />
+}

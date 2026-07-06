@@ -1,0 +1,91 @@
+<div class="wiki">
+  <h1 class="wiki__title">Wiki de Cultivos y Semillas</h1>
+
+  <div class="wiki__tree">
+    <!-- Cultivos -->
+    <button class="wiki__node wiki__node--parent" type="button" (click)="toggleSection('cultivos')">
+      <span class="wiki__arrow" [class.wiki__arrow--open]="expandedSection() === 'cultivos'">▶</span>
+      Cultivos
+    </button>
+
+    @if (expandedSection() === 'cultivos') {
+      <div class="wiki__children">
+        <!-- Agricultor -->
+        <button class="wiki__node wiki__node--cat" type="button" (click)="toggleCategory('agricultor')">
+          <span class="wiki__arrow" [class.wiki__arrow--open]="expandedCategory() === 'agricultor'">▶</span>
+          Agricultor
+        </button>
+
+        @if (expandedCategory() === 'agricultor') {
+          <div class="wiki__children">
+            @for (item of CROP_FOLDERS; track item.folder) {
+              <a class="wiki__node wiki__node--leaf" [routerLink]="itemRoute(item.folder)">
+                {{ item.folder }}
+              </a>
+            }
+          </div>
+        }
+
+        <!-- Herborista -->
+        <button class="wiki__node wiki__node--cat" type="button" (click)="toggleCategory('herborista')">
+          <span class="wiki__arrow" [class.wiki__arrow--open]="expandedCategory() === 'herborista'">▶</span>
+          Herborista
+        </button>
+
+        @if (expandedCategory() === 'herborista') {
+          <div class="wiki__children">
+            @for (item of HERB_FOLDERS; track item.folder) {
+              <a class="wiki__node wiki__node--leaf" [routerLink]="itemRoute(item.folder)">
+                {{ item.folder }}
+              </a>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Semillas -->
+    <button class="wiki__node wiki__node--parent" type="button" (click)="toggleSection('semillas')">
+      <span class="wiki__arrow" [class.wiki__arrow--open]="expandedSection() === 'semillas'">▶</span>
+      Semillas
+    </button>
+
+    @if (expandedSection() === 'semillas') {
+      <div class="wiki__children">
+        <!-- Agricultor -->
+        <button class="wiki__node wiki__node--cat" type="button" (click)="toggleCategory('agricultor')">
+          <span class="wiki__arrow" [class.wiki__arrow--open]="expandedCategory() === 'agricultor'">▶</span>
+          Agricultor
+        </button>
+
+        @if (expandedCategory() === 'agricultor') {
+          <div class="wiki__children">
+            @for (item of CROP_FOLDERS; track item.folder) {
+              <a class="wiki__node wiki__node--leaf" [routerLink]="itemRoute(item.folder)">
+                Semilla_{{ item.folder }}
+              </a>
+            }
+          </div>
+        }
+
+        <!-- Herborista -->
+        <button class="wiki__node wiki__node--cat" type="button" (click)="toggleCategory('herborista')">
+          <span class="wiki__arrow" [class.wiki__arrow--open]="expandedCategory() === 'herborista'">▶</span>
+          Herborista
+        </button>
+
+        @if (expandedCategory() === 'herborista') {
+          <div class="wiki__children">
+            @for (item of HERB_FOLDERS; track item.folder) {
+              <a class="wiki__node wiki__node--leaf" [routerLink]="itemRoute(item.folder)">
+                Semilla_{{ item.folder }}
+              </a>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <router-outlet />
+</div>

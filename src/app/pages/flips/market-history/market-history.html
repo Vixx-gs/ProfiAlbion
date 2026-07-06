@@ -1,0 +1,131 @@
+<div class="mh__backdrop" (click)="onClose()"></div>
+
+<div class="mh" (click)="$event.stopPropagation()">
+  <button class="mh__close" type="button" title="Cerrar" (click)="onClose()">✕</button>
+
+  <header class="mh__head">
+    @if (activeWikiRoute(); as route) {
+      <a class="mh__icon-link" [href]="route" target="_blank" rel="noopener" title="Abrir en Wiki">
+        <img class="mh__icon" [src]="iconUrl()" [alt]="flip().name" width="48" height="48" decoding="async" />
+      </a>
+    } @else {
+      <img class="mh__icon" [src]="iconUrl()" [alt]="flip().name" width="48" height="48" decoding="async" />
+    }
+    <div>
+      <h3 class="mh__title">{{ flip().name }}</h3>
+      <p class="mh__sub">Historial de mercado · {{ cityName() }}</p>
+    </div>
+  </header>
+
+  <!-- Controles -->
+  <div class="mh__controls">
+    @if (toggleItemId()) {
+      <div class="mh__seg">
+        <button class="seg" type="button" [class.seg--on]="!showingRelated()" (click)="setShowingRelated(false)">Semilla</button>
+        <button class="seg" type="button" [class.seg--on]="showingRelated()" (click)="setShowingRelated(true)">{{ toggleLabel() }}</button>
+      </div>
+    }
+    <div class="mh__seg">
+      @for (s of scales; track s.timeScale) {
+        <button class="seg" type="button" [class.seg--on]="scale().timeScale === s.timeScale" (click)="setScale(s)">
+          {{ s.label }}
+        </button>
+      }
+    </div>
+    <label class="mh__city">
+      <span class="mh__city-label">Ciudad</span>
+      <select class="mh__select" (change)="setCity($event.target)">
+        @for (c of cities(); track c) {
+          <option [value]="c" [selected]="selectedCity() === c">{{ c }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  <!-- Gráfica -->
+  @if (loading()) {
+    <div class="mh__state">Cargando historial…</div>
+  } @else if (error()) {
+    <div class="mh__state mh__state--error">{{ error() }}</div>
+  } @else if (!chart()) {
+    <div class="mh__state">Sin datos de historial para esta ciudad.</div>
+  } @else {
+    @if (chart(); as c) {
+      <div class="mh__chartwrap">
+        <svg class="mh__chart" [attr.viewBox]="'0 0 ' + W + ' ' + H" (mouseleave)="clearHover()">
+          <!-- Líneas guía superior/inferior -->
+          <line class="grid" [attr.x1]="38" [attr.x2]="W - 16" [attr.y1]="c.topY" [attr.y2]="c.topY" />
+          <line class="grid" [attr.x1]="38" [attr.x2]="W - 16" [attr.y1]="c.baseY" [attr.y2]="c.baseY" />
+
+          <!-- Etiquetas de precio -->
+          <text class="axis" [attr.x]="32" [attr.y]="c.topY + 4" text-anchor="end">
+            {{ c.priceMax | number: '1.0-0' }}
+          </text>
+          <text class="axis" [attr.x]="32" [attr.y]="c.baseY" text-anchor="end">0</text>
+
+          <!-- Barras (cantidad vendida) -->
+          @for (it of c.items; track $index) {
+            <rect
+              class="bar"
+              [class.bar--on]="hover() === $index"
+              [attr.x]="it.x - c.barW / 2"
+              [attr.y]="it.barY"
+              [attr.width]="c.barW"
+              [attr.height]="it.barH"
+              rx="1.5"
+            />
+          }
+
+          <!-- Línea de precio medio -->
+          <path class="line" [attr.d]="c.linePath" />
+
+          <!-- Puntos -->
+          @for (it of c.items; track $index) {
+            <circle class="dot" [class.dot--on]="hover() === $index" [attr.cx]="it.x" [attr.cy]="it.priceY" r="3.5" />
+          }
+
+          <!-- Línea vertical del punto resaltado -->
+          @if (tip(); as t) {
+            <line class="cursor" [attr.x1]="t.x" [attr.x2]="t.x" [attr.y1]="c.topY" [attr.y2]="c.baseY" />
+          }
+
+          <!-- Etiquetas del eje X -->
+          @for (tk of c.ticks; track $index) {
+            <text class="axis" [attr.x]="tk.x" [attr.y]="H - 10" text-anchor="middle">{{ tk.label }}</text>
+          }
+
+          <!-- Zonas de hover (transparentes) -->
+          @for (it of c.items; track $index) {
+            <rect
+              class="hit"
+              [attr.x]="it.x - c.barW"
+              [attr.y]="c.topY"
+              [attr.width]="c.barW * 2"
+              [attr.height]="c.baseY - c.topY"
+              (mouseenter)="setHover($index)"
+            />
+          }
+        </svg>
+
+        <!-- Tooltip -->
+        @if (tip(); as t) {
+          <div
+            class="mh__tip"
+            [class.mh__tip--left]="t.left"
+            [style.left.%]="(t.x / W) * 100"
+            [style.top.%]="(t.y / H) * 100"
+          >
+            <span class="mh__tip-row">Precio medio: <b>{{ t.price | number: '1.0-0' }}</b></span>
+            <span class="mh__tip-row">Vendido: <b>{{ t.count | number: '1.0-0' }}</b></span>
+            <span class="mh__tip-time">{{ t.time }}</span>
+          </div>
+        }
+      </div>
+
+      <footer class="mh__foot">
+        <span>Precio medio del periodo: <b>{{ avgPrice() | number: '1.0-0' }}</b> plata</span>
+        <span class="mh__hint">Pasa el ratón por la gráfica para ver el detalle.</span>
+      </footer>
+    }
+  }
+</div>

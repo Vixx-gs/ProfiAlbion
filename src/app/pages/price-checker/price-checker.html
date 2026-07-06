@@ -1,0 +1,296 @@
+<section class="container pc">
+  <header class="pc__head">
+    <h1 class="pc__title">Comprobador de precios</h1>
+    <p class="pc__sub">Consulta el precio actual de cualquier item vendible de Albion Online.</p>
+  </header>
+
+  <!-- ===== Buscador ===== -->
+  <div class="card pc__search-card">
+    <div class="pc__search" (click)="$event.stopPropagation()">
+      <span class="pc__search-icon">
+        @if (selected(); as s) {
+          <img [src]="iconUrl(s.id)" [alt]="s.name" width="56" height="56" decoding="async" />
+        } @else {
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.3-4.3" />
+          </svg>
+        }
+      </span>
+      <input
+        class="pc__search-input"
+        type="text"
+        placeholder="Buscar item…"
+        autocomplete="off"
+        [value]="search()"
+        (input)="setSearch($event.target)"
+        (focus)="openSearch()"
+      />
+      <button class="pc__search-clear" type="button" title="Limpiar" (click)="clearSearch()">✕</button>
+
+      @if (searchOpen() && suggestions().length) {
+        <div class="pc__list">
+          @for (opt of suggestions(); track opt.id) {
+            <button class="pc__opt" type="button" (click)="selectOption(opt)">
+              <img class="pc__opt-icon" [src]="iconUrl(opt.id)" [alt]="opt.name" loading="lazy" width="44" height="44" decoding="async" />
+              <span class="pc__opt-name">{{ opt.name }}</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ===== Precio del item seleccionado ===== -->
+  @if (selected(); as s) {
+    <div class="card pc__price-card">
+      <div class="pc__price-head">
+        <img class="pc__price-icon" [src]="iconUrl(s.id)" [alt]="s.name" width="80" height="80" decoding="async" />
+        <h2 class="pc__price-title">{{ s.name }}</h2>
+        <button class="pc__close" type="button" title="Cerrar" (click)="closeSelected()">✕</button>
+      </div>
+
+      @if (loadingPrices()) {
+        <div class="pc__state">Cargando precios…</div>
+      } @else if (priceError()) {
+        <div class="pc__state pc__state--error">{{ priceError() }}</div>
+      } @else {
+        <!-- ===== Filtros ===== -->
+        <div class="pc__filters">
+          <div class="pc__f">
+            <span class="pc__f-title">Vista</span>
+            <div class="pc__viewsw">
+              <button class="pc__viewbtn" [class.pc__viewbtn--on]="viewMode() === 'grid'" type="button" title="Cuadrícula" (click)="setViewMode('grid')">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
+                </svg>
+              </button>
+              <button class="pc__viewbtn" [class.pc__viewbtn--on]="viewMode() === 'list'" type="button" title="Lista" (click)="setViewMode('list')">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="pc__f">
+            <span class="pc__f-title">Ordenar por</span>
+            <select class="pc__select" (change)="setSortBy($event.target)">
+              <option value="default" [selected]="sortBy() === 'default'">Por defecto</option>
+              <option value="volume" [selected]="sortBy() === 'volume'">Mayor volumen</option>
+              <option value="buyPrice" [selected]="sortBy() === 'buyPrice'">Mayor precio de compra</option>
+              <option value="sellPrice" [selected]="sortBy() === 'sellPrice'">Menor precio de venta</option>
+            </select>
+          </div>
+
+          <div class="pc__f">
+            <span class="pc__f-title">Métricas</span>
+            <div class="pc__opts">
+              <button class="sw" [class.sw--on]="metricBuy()" type="button" (click)="toggleMetric('buy')">
+                <span class="sw__track"><span class="sw__knob"></span></span>
+                <span class="sw__label">Órdenes de compra</span>
+              </button>
+              <button class="sw" [class.sw--on]="metricSell()" type="button" (click)="toggleMetric('sell')">
+                <span class="sw__track"><span class="sw__knob"></span></span>
+                <span class="sw__label">Órdenes de venta</span>
+              </button>
+              <button class="sw" [class.sw--on]="metricVolume()" type="button" (click)="toggleMetric('volume')">
+                <span class="sw__track"><span class="sw__knob"></span></span>
+                <span class="sw__label">Volumen de mercado</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="pc__f">
+            <span class="pc__f-title">Incluir vacíos</span>
+            <button class="sw" [class.sw--on]="includeEmpty()" type="button" (click)="toggleIncludeEmpty()">
+              <span class="sw__track"><span class="sw__knob"></span></span>
+              <span class="sw__label">Mostrar entradas sin datos</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="pc__filters pc__filters--wrap">
+          <div class="pc__f">
+            <span class="pc__f-title">Calidades</span>
+            <div class="pc__opts pc__opts--wrap">
+              @for (q of qualities; track q.id) {
+                <button class="sw" [class.sw--on]="selQualities().has(q.id)" type="button" (click)="toggleQualityFilter(q.id)">
+                  <span class="sw__track"><span class="sw__knob"></span></span>
+                  <span class="sw__label">{{ q.label }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="pc__f">
+            <span class="pc__f-title">Ubicaciones</span>
+            <div class="pc__opts pc__opts--wrap">
+              @for (c of cities; track c) {
+                <button class="sw" [class.sw--on]="selLocations().has(c)" type="button" (click)="toggleLocationFilter(c)">
+                  <span class="sw__track"><span class="sw__knob"></span></span>
+                  <span class="sw__dot" [style.background]="cityColor(c)"></span>
+                  <span class="sw__label">{{ c }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== Resultados ===== -->
+        @if (!rows().length) {
+          <div class="pc__state">Sin datos de precio recientes para este item.</div>
+        } @else if (viewMode() === 'grid') {
+          <div class="pc__rowgrid">
+            @for (r of rows(); track r.city + '|' + r.quality) {
+              <div
+                class="rowcard rowcard--click"
+                [class.rowcard--empty]="!r.hasData"
+                (click)="openHistory(r)"
+                title="Ver flujo de mercado"
+              >
+                <div class="rowcard__head">
+                  <img class="rowcard__icon" [src]="iconUrl(s.id)" [alt]="s.name" width="26" height="26" decoding="async" />
+                  <span class="rowcard__city">
+                    <span class="citydot" [style.background]="cityColor(r.city)"></span>{{ r.city }}
+                  </span>
+                </div>
+                <span class="rowcard__quality" [class]="'q' + r.quality">{{ qualityLabel(r.quality) }}</span>
+
+                @if (metricBuy()) {
+                  <div class="rowcard__metric">
+                    <span class="rowcard__label">Órdenes de compra (plata)</span>
+                    @if (r.buyMax) {
+                      <span class="rowcard__value">{{ r.buyMin | number: '1.0-0' }} – {{ r.buyMax | number: '1.0-0' }}</span>
+                      <span class="rowcard__ago">{{ ago(r.buyDate) }}</span>
+                    } @else {
+                      <span class="rowcard__nodata">Sin datos</span>
+                    }
+                  </div>
+                }
+                @if (metricSell()) {
+                  <div class="rowcard__metric">
+                    <span class="rowcard__label">Órdenes de venta (plata)</span>
+                    @if (r.sellMin) {
+                      <span class="rowcard__value">
+                        {{ r.sellMin | number: '1.0-0' }} – {{ r.sellMax | number: '1.0-0' }}
+                        @if (r.suspect) {
+                          <span class="rowcard__warn" title="Precio mucho más alto que las órdenes de compra: puede ser un listado aislado, no representativo. Verifícalo en el juego.">⚠</span>
+                        }
+                      </span>
+                      <span class="rowcard__ago">{{ ago(r.sellDate) }}</span>
+                    } @else {
+                      <span class="rowcard__nodata">Sin datos</span>
+                    }
+                  </div>
+                }
+                @if (metricVolume()) {
+                  <div class="rowcard__metric">
+                    <span class="rowcard__label">Volumen (24h)</span>
+                    @if (r.volumeUnits) {
+                      <span class="rowcard__value">{{ r.volumeSilver | number: '1.0-0' }} <i>plata</i></span>
+                      <span class="rowcard__sub">{{ r.volumeUnits | number: '1.0-0' }} unidades vendidas</span>
+                    } @else {
+                      <span class="rowcard__nodata">Sin datos</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Ciudad</th>
+                  <th>Calidad</th>
+                  @if (metricBuy()) { <th class="num">Órdenes de compra</th> }
+                  @if (metricSell()) { <th class="num">Órdenes de venta</th> }
+                  @if (metricVolume()) { <th class="num">Volumen (24h)</th> }
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of rows(); track r.city + '|' + r.quality) {
+                  <tr class="row-click" (click)="openHistory(r)" title="Ver flujo de mercado">
+                    <td><span class="citydot" [style.background]="cityColor(r.city)"></span>{{ r.city }}</td>
+                    <td>{{ qualityLabel(r.quality) }}</td>
+                    @if (metricBuy()) {
+                      <td class="num">
+                        @if (r.buyMax) { {{ r.buyMin | number: '1.0-0' }} – {{ r.buyMax | number: '1.0-0' }} } @else { Sin datos }
+                      </td>
+                    }
+                    @if (metricSell()) {
+                      <td class="num">
+                        @if (r.sellMin) {
+                          {{ r.sellMin | number: '1.0-0' }} – {{ r.sellMax | number: '1.0-0' }}
+                          @if (r.suspect) {
+                            <span class="rowcard__warn" title="Precio mucho más alto que las órdenes de compra: puede ser un listado aislado, no representativo. Verifícalo en el juego.">⚠</span>
+                          }
+                        } @else { Sin datos }
+                      </td>
+                    }
+                    @if (metricVolume()) {
+                      <td class="num">
+                        @if (r.volumeUnits) { {{ r.volumeSilver | number: '1.0-0' }} ({{ r.volumeUnits }} ud.) } @else { Sin datos }
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    </div>
+  }
+
+  @if (historyFlip(); as f) {
+    <app-market-history [flip]="f" (close)="closeHistory()" />
+  }
+
+  <!-- ===== Recientes y favoritos ===== -->
+  <div class="pc__grids">
+    <div class="card pc__grid-card">
+      <h3 class="pc__grid-title">Items buscados recientemente <span>(máx. 25)</span></h3>
+      @if (recent().length) {
+        <div class="pc__grid">
+          @for (id of recent(); track id) {
+            <button class="pc__tile" type="button" (click)="selectRecent(id)" [title]="displayName(id)">
+              <img class="pc__tile-icon" [src]="iconUrl(id)" [alt]="id" loading="lazy" width="112" height="112" decoding="async" />
+              <span
+                class="pc__tile-star"
+                [class.pc__tile-star--on]="isFavorite(id)"
+                (click)="toggleFavorite(id, $event)"
+                title="Añadir a favoritos"
+              >★</span>
+            </button>
+          }
+        </div>
+      } @else {
+        <p class="pc__empty">Aún no has buscado ningún item.</p>
+      }
+    </div>
+
+    <div class="card pc__grid-card">
+      <h3 class="pc__grid-title">Items favoritos <span>(máx. 25)</span></h3>
+      @if (favoriteItems().length) {
+        <div class="pc__grid">
+          @for (opt of favoriteItems(); track opt.id) {
+            <button class="pc__tile" type="button" (click)="selectRecent(opt.id)" [title]="opt.name">
+              <img class="pc__tile-icon" [src]="iconUrl(opt.id)" [alt]="opt.name" loading="lazy" width="112" height="112" decoding="async" />
+              <span
+                class="pc__tile-star pc__tile-star--on"
+                (click)="toggleFavorite(opt.id, $event)"
+                title="Quitar de favoritos"
+              >★</span>
+            </button>
+          }
+        </div>
+      } @else {
+        <p class="pc__empty">Aún no tienes ningún item favorito.</p>
+      }
+    </div>
+  </div>
+</section>

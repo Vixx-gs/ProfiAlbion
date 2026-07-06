@@ -1,0 +1,266 @@
+<section class="container fp">
+  <header class="fp__head">
+    <h1 class="fp__title">Calculadora de Flipping de Mercado</h1>
+    <p class="fp__sub">
+      Compra barato en cualquier ciudad y vende siempre en el <strong>Black Market</strong> (nunca se
+      compra allí).
+    </p>
+  </header>
+
+  <!-- ===== Panel 1: parámetros de escaneo ===== -->
+  <div class="card scan">
+    <div class="scan__grid">
+      <div class="grp">
+        <span class="grp__title">Ruta</span>
+        <div class="route">
+          <span class="route__pill">Cualquier ciudad</span>
+          <svg class="route__arrow" viewBox="0 0 16 10" width="16" height="10">
+            <path d="M1 5h13M9 1l5 4-5 4" fill="none" stroke="currentColor" stroke-width="1.6" />
+          </svg>
+          <span class="route__pill route__pill--bm">Black Market</span>
+        </div>
+      </div>
+
+      <div class="grp">
+        <span class="grp__title">Qualities</span>
+        <div class="grp__opts grp__opts--wrap">
+          @for (q of qualities; track q.id) {
+            <button class="sw" [class.sw--on]="selQualities().has(q.id)" type="button" (click)="toggleQuality(q.id)">
+              <span class="sw__track"><span class="sw__knob"></span></span>
+              <span class="sw__label">{{ q.label }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="grp">
+        <span class="grp__title">Tier</span>
+        <div class="grp__opts grp__opts--wrap">
+          @for (t of tiers; track t) {
+            <button class="sw" [class.sw--on]="selTiers().has(t)" type="button" (click)="toggleTier(t)">
+              <span class="sw__track"><span class="sw__knob"></span></span>
+              <span class="sw__label">T{{ t }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="scan__foot">
+      <button class="btn btn--primary" type="button" (click)="fetchFlips()" [disabled]="loading()">
+        Fetch Flips <kbd class="kbd">A</kbd>
+      </button>
+      <span class="scan__hint">
+        Tras cambiar los filtros, pulsa "Fetch Flips" para actualizar los resultados.
+      </span>
+    </div>
+  </div>
+
+  <!-- ===== Panel 2: filtros de cliente ===== -->
+  <div class="card filters2">
+    <div class="filters2__grid">
+      <label class="f2">
+        <span class="f2__label">Search By Name</span>
+        <div class="combo" (click)="$event.stopPropagation()">
+          <input
+            class="f2__input combo__input"
+            type="text"
+            placeholder="Buscar items…"
+            autocomplete="off"
+            [value]="search()"
+            (input)="setSearch($event.target)"
+            (focus)="openSearch()"
+          />
+          @if (search()) {
+            <button class="combo__clear" type="button" title="Limpiar" (click)="clearSearch()">✕</button>
+          }
+          @if (searchOpen() && suggestions().length) {
+            <div class="combo__list">
+              @for (opt of suggestions(); track opt.id) {
+                <button class="combo__opt" type="button" (click)="selectItem(opt)">
+                  <img
+                    class="combo__icon"
+                    [src]="iconUrl(opt.id)"
+                    [alt]="opt.name"
+                    loading="lazy"
+                    width="44"
+                    height="44"
+                    decoding="async"
+                  />
+                  <span class="combo__name">{{ opt.name }}</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </label>
+      <label class="f2">
+        <span class="f2__label">Sort By</span>
+        <select class="f2__input" (change)="setSort($event.target)">
+          <option value="update" [selected]="sortBy() === 'update'">Última actualización</option>
+          <option value="profit" [selected]="sortBy() === 'profit'">Beneficio por item</option>
+          <option value="margin" [selected]="sortBy() === 'margin'">Margen de beneficio</option>
+          <option value="volume" [selected]="sortBy() === 'volume'">Mayor flujo de venta</option>
+        </select>
+      </label>
+      <label class="f2 f2--slider">
+        <span class="f2__label">Profit Per Item Min</span>
+        <span class="f2__sliderrow">
+          <input
+            type="range"
+            min="0"
+            max="1000000"
+            step="10000"
+            [value]="minProfit()"
+            [style.--pct.%]="minProfitPct()"
+            (input)="setMinProfit($event.target)"
+          />
+          <span class="f2__sliderval">{{ minProfit() | number: '1.0-0' }} <i>plata</i></span>
+        </span>
+      </label>
+    </div>
+    <div class="filters2__foot">
+      <button class="btn btn--danger btn--sm" type="button" (click)="resetFilters()">Reset Filters ✕</button>
+    </div>
+  </div>
+
+  <!-- ===== Resultados ===== -->
+  <div class="card results">
+    <div class="results__head">
+      <div>
+        <h2 class="results__title">Top Market Flips</h2>
+        @if (result(); as res) {
+          <p class="results__meta">
+            Mostrando {{ visible().length | number: '1.0-0' }} de {{ displayed().length | number: '1.0-0' }}.
+            Datos {{ fetchedAgo() }}. Analizadas {{ res.analysed | number: '1.0-0' }} combinaciones.
+            @if (streaming()) {
+              <span class="results__live">· escaneando más…</span>
+            }
+          </p>
+        }
+      </div>
+      <div class="results__actions">
+        @if (hidden().size) {
+          <button class="btn btn--ghost btn--sm" type="button" (click)="clearHidden()">
+            Mostrar ocultos ({{ hidden().size }})
+          </button>
+        }
+        <button class="btn btn--ghost btn--sm" type="button" (click)="exportCsv()">Export CSV</button>
+        <button class="btn btn--ghost btn--sm" type="button" (click)="exportJson()">Export JSON</button>
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="results__state results__state--error">{{ error() }}</div>
+    } @else if (displayed().length === 0) {
+      @if (loading()) {
+        <div class="results__state">Escaneando precios…</div>
+      } @else if (search()) {
+        <div class="results__state">Ningún flip rentable para este ítem/filtro ahora mismo.</div>
+      } @else {
+        <div class="results__state">Sin oportunidades rentables. Ajusta los filtros y vuelve a escanear.</div>
+      }
+    } @else {
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Last Update</th>
+              <th>Buy</th>
+              <th>Sell</th>
+              <th class="num">Profit Per Item</th>
+              <th class="num">Profit Margin</th>
+              <th class="num">Flujo (24h)</th>
+              <th class="num">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of visible(); track rowKey(f)) {
+              <tr class="row-click" (click)="openHistory(f)" title="Ver historial de mercado">
+                <td class="cell-item">
+                  <img
+                    class="item-icon"
+                    [src]="'https://render.albiononline.com/v1/item/' + f.itemId + '.png?size=90'"
+                    [alt]="f.name"
+                    loading="lazy"
+                    width="60"
+                    height="60"
+                    decoding="async"
+                  />
+                  <span class="item-text">
+                    <span class="item-name">{{ f.name }}</span>
+                    <span class="item-sub">
+                      <span class="item-quality" [class]="'q' + f.quality">{{ qualityLabel(f.quality) }}</span>
+                    </span>
+                  </span>
+                </td>
+                <td class="cell-dim">
+                  <span class="freshdot" [class]="'freshdot--' + freshness(f.updatedAt)"></span>
+                  {{ ago(f.updatedAt) }}
+                </td>
+                <td>
+                  <span class="city"><span class="citydot" [style.background]="cityColor(f.buyCity)"></span>{{ f.buyCity }}</span>
+                  <span class="price">{{ f.buyPrice | number: '1.0-0' }} <i>plata</i></span>
+                </td>
+                <td>
+                  <span class="city"><span class="citydot" [style.background]="cityColor(f.sellCity)"></span>{{ f.sellCity }}</span>
+                  <span class="sell-price">
+                    <span class="price">{{ f.sellPrice | number: '1.0-0' }} <i>plata</i></span>
+                    <button class="pop-toggle" type="button" title="Ver compra instantánea" (click)="togglePopover(rowKey(f), $event)">
+                      <svg viewBox="0 0 12 12" width="11" height="11">
+                        <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
+                      </svg>
+                    </button>
+                    @if (openPopover() === rowKey(f)) {
+                      <span class="pop" (click)="$event.stopPropagation()">
+                        <span class="pop__label">Compra instantánea</span>
+                        @if (f.sellBuyMax) {
+                          <span class="pop__price">{{ f.sellBuyMax | number: '1.0-0' }} <i>plata</i></span>
+                        } @else {
+                          <span class="pop__empty">Sin órdenes de compra</span>
+                        }
+                      </span>
+                    }
+                  </span>
+                </td>
+                <td class="num profit">+{{ f.profit | number: '1.0-0' }}</td>
+                <td class="num profit">{{ f.marginPct | number: '1.0-2' }} %</td>
+                <td class="num cell-dim">
+                  @if (f.volume24h) { {{ f.volume24h | number: '1.0-0' }} ud. } @else { — }
+                </td>
+                <td class="num">
+                  <span class="actions">
+                    <button class="act" [class.act--on]="isSaved(f)" type="button" title="Guardar" (click)="toggleSave(f, $event)">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                      </svg>
+                    </button>
+                    <button class="act" type="button" title="Ocultar" (click)="hideRow(f, $event)">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5 20 1 12 1 12a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                        <path d="M1 1l22 22" />
+                      </svg>
+                    </button>
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (hasMore()) {
+        <div class="results__more">
+          <button class="btn btn--ghost btn--sm" type="button" (click)="showMore()">
+            Ver más ({{ displayed().length - visible().length | number: '1.0-0' }} restantes)
+          </button>
+        </div>
+      }
+    }
+  </div>
+
+  @if (historyFlip(); as f) {
+    <app-market-history [flip]="f" (close)="closeHistory()" />
+  }
+</section>
