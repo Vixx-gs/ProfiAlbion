@@ -1,0 +1,292 @@
+<section class="container page">
+  <div class="hero-sm">
+    <h1 class="hero-sm__title">Calculadora de Animales</h1>
+    <p class="hero-sm__subtitle">Calcula el profit de criar animales en tu isla. Selecciona el animal, elige entre producto o carne, ajusta los precios y obtén el beneficio neto.</p>
+  </div>
+
+  <div class="calc-layout">
+    <div class="calc-panel">
+      <div class="panel-section">
+        <div class="crop-options">
+          @for (item of animals; track item.id) {
+            <button
+              class="crop-opt"
+              type="button"
+              [class.crop-opt--active]="selAnimal().id === item.id"
+              (click)="selectItem(item)"
+              (dblclick)="openHistory(item)"
+            >
+              <img
+                class="crop-opt__icon"
+                [src]="'https://render.albiononline.com/v1/item/' + item.iconId + '.png?size=64'"
+                [alt]="item.name"
+                loading="lazy"
+                width="56"
+                height="56"
+                decoding="async"
+              />
+              <span class="crop-opt__name">{{ item.name }}</span>
+              <span class="crop-opt__meta">{{ ago(harvestDates()[item.meatId] ?? '') }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Modo: Carne / Producto -->
+      <div class="panel-section">
+        <h2 class="panel-section__title">Modo</h2>
+        <div class="tabs">
+          <button
+            class="tab"
+            type="button"
+            [class.tab--active]="mode() === 'meat'"
+            (click)="setMode('meat')"
+          >Carne</button>
+          @if (selAnimal().hasProduct) {
+            <button
+              class="tab"
+              type="button"
+              [class.tab--active]="mode() === 'product'"
+              (click)="setMode('product')"
+            >Producto</button>
+          }
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h2 class="panel-section__title">Isla</h2>
+        <div class="city-options">
+          @for (city of plantCities; track city) {
+            <button
+              class="city-opt"
+              type="button"
+              [class.city-opt--active]="plantCity() === city"
+              [class.city-opt--bonus]="city === selAnimal().bonusCity"
+              (click)="setPlantCity(city)"
+            >
+              <span class="city-opt__dot" [style.background]="cityColor(city)"></span>
+              {{ city }}
+              @if (city === selAnimal().bonusCity) {
+                <span class="city-opt__badge">+15%</span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h2 class="panel-section__title">Mercado</h2>
+        <div class="city-options">
+          @for (city of marketCities; track city) {
+            <button
+              class="city-opt"
+              type="button"
+              [class.city-opt--active]="marketCity() === city"
+              (click)="setMarketCity(city)"
+            >
+              <span class="city-opt__dot" [style.background]="cityColor(city)"></span>
+              {{ city }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h2 class="panel-section__title">Parámetros</h2>
+
+        <label class="field">
+          <span class="field__label">Corrales</span>
+          <input class="field__input" type="number" min="1" max="120" [ngModel]="pens()" (ngModelChange)="pens.set($event)" />
+        </label>
+
+        @if (mode() === 'meat') {
+          <label class="field">
+            <span class="field__label">Precio cría (NPC)</span>
+            <input class="field__input" type="number" min="0" [ngModel]="npcBabyPrice()" (ngModelChange)="npcBabyPrice.set($event)" placeholder="0" />
+          </label>
+        }
+
+        @if (mode() === 'meat') {
+          <label class="field">
+            <span class="field__label">Precio venta carne</span>
+            <input class="field__input" type="number" min="0" [ngModel]="meatPrice()" (ngModelChange)="meatPrice.set($event)" placeholder="0" />
+          </label>
+        } @else {
+          <label class="field">
+            <span class="field__label">Precio venta {{ feedCropName(selAnimal().productId ?? '') }}</span>
+            <input class="field__input" type="number" min="0" [ngModel]="productPrice()" (ngModelChange)="productPrice.set($event)" placeholder="0" />
+          </label>
+        }
+
+        <label class="field">
+            <span class="field__label">Precio alimento ({{ feedCropName(selAnimal().feedCropId) }})</span>
+          <input class="field__input" type="number" min="0" [ngModel]="feedPrice()" (ngModelChange)="feedPrice.set($event)" placeholder="0" />
+        </label>
+
+        <div class="toggles">
+          @if (mode() === 'product') {
+            <label class="toggle">
+              <input type="checkbox" [ngModel]="premium()" (ngModelChange)="premium.set($event)" />
+              Premium (×2 producto, ciclo 11h)
+            </label>
+          }
+          @if (mode() === 'meat') {
+            <label class="toggle">
+              <input type="checkbox" [ngModel]="focusMatadero()" (ngModelChange)="focusMatadero.set($event)" />
+              Focus matadero (RRR +43,5%)
+            </label>
+            <label class="toggle">
+              <input type="checkbox" [ngModel]="focusCrianza()" (ngModelChange)="focusCrianza.set($event)" />
+              Focus crianza (más crías)
+            </label>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="calc-panel calc-panel--result">
+      <div class="panel-section">
+        <h2 class="panel-section__title">{{ selAnimal().name }} — {{ mode() === 'meat' ? 'Carne' : 'Producto' }}</h2>
+        <div class="result-detail">
+          <div class="result-detail__row">
+            <span>{{ mode() === 'meat' ? 'Crías necesarias' : 'Animales' }}</span>
+            <span>{{ pens() }}</span>
+          </div>
+          <div class="result-detail__row">
+            <span>Alimento por animal</span>
+            <span>{{ selAnimal().feedQty }} × {{ feedCropName(selAnimal().feedCropId) }}</span>
+          </div>
+          @if (mode() === 'meat') {
+            <div class="result-detail__row">
+              <span>RRR matadero</span>
+              <span>{{ result().rrr | percent:'1.1-1' }}</span>
+            </div>
+            <div class="result-detail__row">
+              <span>Crías por animal</span>
+              <span>{{ offspringYield() | percent:'1.0-0' }}</span>
+            </div>
+            <div class="result-detail__row">
+              <span>Coste cría efectivo (con RRR)</span>
+              <span>{{ result().effectiveBabyCost | number:'1.0-0' }} <i>plata</i></span>
+            </div>
+            <div class="result-detail__row">
+              <span>Coste cría + alimento</span>
+              <span>{{ result().effectiveBabyCost | number:'1.0-0' }} + {{ result().feedCost | number:'1.0-0' }} <i>plata</i></span>
+            </div>
+            <div class="result-detail__row">
+              <span>Ingreso por carne</span>
+              <span>{{ meatPrice() | number:'1.0-0' }} <i>plata × {{ result().meatPerAnimal | number:'1.1-1' }} ud.</i></span>
+            </div>
+          } @else {
+            <div class="result-detail__row">
+              <span>Producción por animal</span>
+              <span>{{ result().productYield }}/ciclo ({{ result().cycleHours }}h)</span>
+            </div>
+            <div class="result-detail__row">
+              <span>Coste alimento (ciclo)</span>
+              <span>{{ result().feedCost | number:'1.0-0' }} <i>plata</i></span>
+            </div>
+            <div class="result-detail__row">
+              <span>Ingreso por producto</span>
+              <span>{{ productPrice() | number:'1.0-0' }} <i>plata × {{ result().productYield }} ud.</i></span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <h2 class="panel-section__title">Resultados</h2>
+
+      <div class="result-summary">
+        <div class="result-summary__city">
+          <span class="city-opt__dot" [style.background]="cityColor(plantCity())"></span>
+          Isla: {{ plantCity() }}
+          @if (plantCity() === selAnimal().bonusCity) {
+            <span class="result-summary__bonus">+15%</span>
+          }
+        </div>
+        <div class="result-summary__city">
+          <span class="city-opt__dot" [style.background]="cityColor(marketCity())"></span>
+          Mercado: {{ marketCity() }}
+        </div>
+        @if (mode() === 'meat') {
+          <div class="result-summary__city">
+            {{ result().meatPerAnimal | number:'1.1-1' }} carne/animal
+            @if (focusMatadero()) { <span class="result-summary__bonus">RRR {{ result().rrr | percent:'1.1-1' }}</span> }
+            @if (focusCrianza()) { <span class="result-summary__bonus">+crías</span> }
+          </div>
+        } @else {
+          <div class="result-summary__city">
+            {{ result().productYield }}/ciclo · {{ result().cycleHours }}h
+            @if (premium()) { <span class="result-summary__bonus">Premium</span> }
+          </div>
+        }
+      </div>
+
+      @if (mode() === 'meat') {
+        <div class="result-card result-card--full">
+          <span class="result-card__label">Inversión total (cría + alimento)</span>
+          <span class="result-card__value">{{ result().totalCost | number:'1.0-0' }} <i>plata</i></span>
+        </div>
+        <div class="result-card result-card--full"
+          [class.roi-negative]="result().profit < 0"
+          [class.roi-high]="result().profit > 0">
+          <span class="result-card__label">Beneficio neto</span>
+          <span class="result-card__value result-card__value--row">
+            <span>{{ result().profit >= 0 ? '+' : '' }}{{ result().profit | number:'1.0-0' }} <i>plata</i></span>
+            <span>{{ result().roi | number:'1.1-1' }} % <i>ROI</i></span>
+          </span>
+        </div>
+      } @else {
+        <div class="result-card result-card--full">
+          <span class="result-card__label">Coste alimento (ciclo)</span>
+          <span class="result-card__value">{{ result().totalCost | number:'1.0-0' }} <i>plata</i></span>
+        </div>
+        <div class="result-card result-card--full"
+          [class.roi-negative]="result().profit < 0"
+          [class.roi-high]="result().profit > 0">
+          <span class="result-card__label">Beneficio neto por ciclo</span>
+          <span class="result-card__value result-card__value--row">
+            <span>{{ result().profit >= 0 ? '+' : '' }}{{ result().profit | number:'1.0-0' }} <i>plata</i></span>
+            <span>{{ result().roi | number:'1.1-1' }} % <i>ROI</i></span>
+          </span>
+        </div>
+      }
+
+      <!-- Comparativa rápida del otro modo -->
+      <div class="result-detail" style="margin-top: 16px;">
+        <div class="result-detail__row" style="font-weight: 700; color: var(--gold-bright);">
+          <span>Comparativa</span>
+          <span></span>
+        </div>
+        @if (mode() === 'meat') {
+          <div class="result-detail__row" style="flex-direction: column; gap: 2px;">
+            <span style="font-size: 12px; color: var(--text-dim);">Si fuera Producto {{ tierLabel(selAnimal().productId ?? '') }}:</span>
+            <span style="font-weight: 700;" [class.result-card--negative]="result().productProfit < 0">
+              {{ result().productProfit >= 0 ? '+' : '' }}{{ result().productProfit | number:'1.0-0' }} plata
+              ({{ result().productRoi | number:'1.1-1' }} % ROI)
+            </span>
+          </div>
+        } @else {
+          <div class="result-detail__row" style="flex-direction: column; gap: 2px;">
+            <span style="font-size: 12px; color: var(--text-dim);">Si fuera Carne {{ tierLabel(selAnimal().meatId) }}:</span>
+            <span style="font-weight: 700;" [class.result-card--negative]="result().meatProfit < 0">
+              {{ result().meatProfit >= 0 ? '+' : '' }}{{ result().meatProfit | number:'1.0-0' }} plata
+              ({{ result().meatRoi | number:'1.1-1' }} % ROI)
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+@if (historyAnimal(); as flip) {
+  <app-market-history
+    [flip]="flip"
+    [iconId]="historyIconId()"
+    [citiesInput]="marketCities"
+    [toggleItemId]="selAnimal().meatId"
+    toggleLabel="Carne"
+    (close)="closeHistory()"
+  />
+}

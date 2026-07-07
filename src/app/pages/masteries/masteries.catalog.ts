@@ -53,7 +53,7 @@ const COOKING_SUB_MASTERIES: MasteryDef[] = [
   { key: 'soup', label: 'Sopa', iconId: 'T5_MEAL_SOUP', maxLevel: 100 },
   { key: 'stew', label: 'Estofado', iconId: 'T8_MEAL_STEW', maxLevel: 100 },
   { key: 'roast', label: 'Asado', iconId: 'T7_MEAL_ROAST', maxLevel: 100 },
-  { key: 'harvester', label: 'Ingrediente', iconId: 'T1_MEAL_GRILLEDFISH', maxLevel: 100 },
+  { key: 'harvester', label: 'Ingrediente', iconId: 'T3_FLOUR', maxLevel: 100 },
 ];
 
 /** Catálogo completo de maestrías obtenibles, en el mismo orden que en el juego. */
@@ -66,7 +66,7 @@ export const MASTERIES_CATALOG: MasteryDef[] = [
     maxLevel: 1500,
     subMasteries: ALCHEMY_SUB_MASTERIES,
   },
-  { key: 'cooking', label: 'Cocina', iconId: 'T8_MEAL_STEW', maxLevel: 900, subMasteries: COOKING_SUB_MASTERIES },
+  { key: 'cooking', label: 'Cocina', iconId: 'T8_MEAL_STEW', maxLevel: 800, subMasteries: COOKING_SUB_MASTERIES },
   { key: 'animal_breeder', label: 'Ganadero', iconId: 'T3_FARM_HORSE_GROWN', maxLevel: 900, subMasteries: BREEDER_SUB_MASTERIES },
   {
     key: 'crop_farmer',
@@ -101,11 +101,71 @@ export const MASTERIES_CATALOG: MasteryDef[] = [
       { key: 'yarrow', label: 'Milenrama de Ghoul', iconId: 'T8_YARROW', maxLevel: 100 },
     ],
   },
-  { key: 'fiber_weaver', label: 'Tejedor de fibra', iconId: 'T8_JOURNAL_FIBER', maxLevel: 500 },
-  { key: 'ore_smelter', label: 'Fundidor de mineral', iconId: 'T8_JOURNAL_ORE', maxLevel: 500 },
-  { key: 'hide_tanner', label: 'Curtidor de pieles', iconId: 'T8_JOURNAL_HIDE', maxLevel: 500 },
-  { key: 'wood_planer', label: 'Carpintero', iconId: 'T8_JOURNAL_WOOD', maxLevel: 500 },
-  { key: 'stone_cutter', label: 'Cantero', iconId: 'T8_JOURNAL_STONE', maxLevel: 500 },
+  {
+    key: 'fiber_weaver',
+    label: 'Tejedor de fibra',
+    iconId: 'T3_CLOTH',
+    maxLevel: 500,
+    subMasteries: [
+      { key: 'fiber_t4', label: 'T4', iconId: 'T4_CLOTH', maxLevel: 100 },
+      { key: 'fiber_t5', label: 'T5', iconId: 'T5_CLOTH', maxLevel: 100 },
+      { key: 'fiber_t6', label: 'T6', iconId: 'T6_CLOTH', maxLevel: 100 },
+      { key: 'fiber_t7', label: 'T7', iconId: 'T7_CLOTH', maxLevel: 100 },
+      { key: 'fiber_t8', label: 'T8', iconId: 'T8_CLOTH', maxLevel: 100 },
+    ],
+  },
+  {
+    key: 'ore_smelter',
+    label: 'Fundidor de mineral',
+    iconId: 'T3_METALBAR',
+    maxLevel: 500,
+    subMasteries: [
+      { key: 'ore_t4', label: 'T4', iconId: 'T4_METALBAR', maxLevel: 100 },
+      { key: 'ore_t5', label: 'T5', iconId: 'T5_METALBAR', maxLevel: 100 },
+      { key: 'ore_t6', label: 'T6', iconId: 'T6_METALBAR', maxLevel: 100 },
+      { key: 'ore_t7', label: 'T7', iconId: 'T7_METALBAR', maxLevel: 100 },
+      { key: 'ore_t8', label: 'T8', iconId: 'T8_METALBAR', maxLevel: 100 },
+    ],
+  },
+  {
+    key: 'hide_tanner',
+    label: 'Curtidor de pieles',
+    iconId: 'T3_LEATHER',
+    maxLevel: 500,
+    subMasteries: [
+      { key: 'hide_t4', label: 'T4', iconId: 'T4_LEATHER', maxLevel: 100 },
+      { key: 'hide_t5', label: 'T5', iconId: 'T5_LEATHER', maxLevel: 100 },
+      { key: 'hide_t6', label: 'T6', iconId: 'T6_LEATHER', maxLevel: 100 },
+      { key: 'hide_t7', label: 'T7', iconId: 'T7_LEATHER', maxLevel: 100 },
+      { key: 'hide_t8', label: 'T8', iconId: 'T8_LEATHER', maxLevel: 100 },
+    ],
+  },
+  {
+    key: 'wood_planer',
+    label: 'Carpintero',
+    iconId: 'T3_PLANKS',
+    maxLevel: 500,
+    subMasteries: [
+      { key: 'wood_t4', label: 'T4', iconId: 'T4_PLANKS', maxLevel: 100 },
+      { key: 'wood_t5', label: 'T5', iconId: 'T5_PLANKS', maxLevel: 100 },
+      { key: 'wood_t6', label: 'T6', iconId: 'T6_PLANKS', maxLevel: 100 },
+      { key: 'wood_t7', label: 'T7', iconId: 'T7_PLANKS', maxLevel: 100 },
+      { key: 'wood_t8', label: 'T8', iconId: 'T8_PLANKS', maxLevel: 100 },
+    ],
+  },
+  {
+    key: 'stone_cutter',
+    label: 'Cantero',
+    iconId: 'T3_STONEBLOCK',
+    maxLevel: 500,
+    subMasteries: [
+      { key: 'stone_t4', label: 'T4', iconId: 'T4_STONEBLOCK', maxLevel: 100 },
+      { key: 'stone_t5', label: 'T5', iconId: 'T5_STONEBLOCK', maxLevel: 100 },
+      { key: 'stone_t6', label: 'T6', iconId: 'T6_STONEBLOCK', maxLevel: 100 },
+      { key: 'stone_t7', label: 'T7', iconId: 'T7_STONEBLOCK', maxLevel: 100 },
+      { key: 'stone_t8', label: 'T8', iconId: 'T8_STONEBLOCK', maxLevel: 100 },
+    ],
+  },
 
   // Artesanos de herramientas de recolección
   { key: 'harvester_crafter', label: 'Artesano de hoz', iconId: 'T8_2H_TOOL_SICKLE', maxLevel: 300 },

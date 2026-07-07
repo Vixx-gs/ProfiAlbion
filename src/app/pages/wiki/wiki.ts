@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
-import { ALL_CROP_FOLDERS, ALL_HERB_FOLDERS } from './wiki-data';
+import { ALL_CROP_FOLDERS, ALL_HERB_FOLDERS, ALL_ANIMAL_FOLDERS } from './wiki-data';
 
 @Component({
   selector: 'app-wiki',
@@ -11,11 +11,12 @@ import { ALL_CROP_FOLDERS, ALL_HERB_FOLDERS } from './wiki-data';
 export class Wiki {
   readonly CROP_FOLDERS = ALL_CROP_FOLDERS;
   readonly HERB_FOLDERS = ALL_HERB_FOLDERS;
+  readonly ANIMAL_FOLDERS = ALL_ANIMAL_FOLDERS;
 
-  readonly expandedSection = signal<'cultivos' | 'semillas' | null>(null);
+  readonly expandedSection = signal<'cultivos' | 'semillas' | 'animales' | null>(null);
   readonly expandedCategory = signal<'agricultor' | 'herborista' | null>(null);
 
-  toggleSection(section: 'cultivos' | 'semillas'): void {
+  toggleSection(section: 'cultivos' | 'semillas' | 'animales'): void {
     if (this.expandedSection() === section) {
       this.expandedSection.set(null);
       this.expandedCategory.set(null);
@@ -39,5 +40,9 @@ export class Wiki {
     if (!section || !cat) return '';
     const f = section === 'semillas' ? `Semilla_${folder}` : folder;
     return `/wiki/${section}/${cat}/${f}`;
+  }
+
+  animalRoute(folder: string): string {
+    return `/wiki/animales/ganadero/${folder}`;
   }
 }

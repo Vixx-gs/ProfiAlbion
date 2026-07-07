@@ -151,7 +151,7 @@
             @if (m.subMasteries?.length) {
               <div class="mastery-sub-grid">
                 @for (s of m.subMasteries; track s.key) {
-                    <div class="mastery-sub" [class.mastery-sub--lead]="$first">
+                    <div class="mastery-sub" [class.mastery-sub--lead]="$first && !['fiber_weaver','ore_smelter','hide_tanner','wood_planer','stone_cutter'].includes(m.key)">
                     <div class="mastery-sub__head">
                       <img
                         class="mastery-sub__icon"

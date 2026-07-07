@@ -7,12 +7,59 @@
       <div>
         <span class="wi__tier">T{{ d.tier }}</span>
         <h1 class="wi__title">{{ d.name }}</h1>
-        <p class="wi__sub">{{ params().section === 'semillas' ? 'Semilla' : 'Cultivo' }} · {{ params().category }}</p>
+        <p class="wi__sub">{{ mode }}@if (category) { · {{ category }} }</p>
       </div>
     </header>
 
     <section class="wi__content">
-      <p class="wi__placeholder">Contenido próximamente.</p>
+      @if (animal(); as a) {
+        <div class="wi__grid">
+          <div class="wi__card">
+            <img [src]="iconUrl(a.babyId)" alt="Cría" width="48" height="48" />
+            <span class="wi__card-label">Cría</span>
+            <span class="wi__card-id">{{ a.babyId }}</span>
+          </div>
+          <div class="wi__card">
+            <img [src]="iconUrl(a.grownId)" alt="Adulto" width="48" height="48" />
+            <span class="wi__card-label">Adulto</span>
+            <span class="wi__card-id">{{ a.grownId }}</span>
+          </div>
+          <div class="wi__card">
+            <img [src]="iconUrl(a.meatId)" alt="Carne" width="48" height="48" />
+            <span class="wi__card-label">Carne</span>
+            <span class="wi__card-id">{{ a.meatId }}</span>
+          </div>
+          @if (a.hasProduct && a.productId) {
+            <div class="wi__card">
+              <img [src]="iconUrl(a.productId)" alt="Producto" width="48" height="48" />
+              <span class="wi__card-label">Producto</span>
+              <span class="wi__card-id">{{ a.productId }}</span>
+            </div>
+          }
+          <div class="wi__card">
+            <img [src]="iconUrl(a.feedCropId)" alt="Alimento" width="48" height="48" />
+            <span class="wi__card-label">Alimento</span>
+            <span class="wi__card-id">{{ a.feedCropId }}</span>
+          </div>
+        </div>
+
+        <dl class="wi__stats">
+          <div class="wi__stat">
+            <dt>Precio NPC cría</dt>
+            <dd>{{ a.npcBabyPrice | number }} <span class="wi__silver">plata</span></dd>
+          </div>
+          <div class="wi__stat">
+            <dt>Tiempo de crecimiento</dt>
+            <dd>{{ a.growHours }} h</dd>
+          </div>
+          <div class="wi__stat">
+            <dt>Consumo de alimento</dt>
+            <dd>{{ a.feedQty }} por ciclo</dd>
+          </div>
+        </dl>
+      } @else {
+        <p class="wi__placeholder">Contenido próximamente.</p>
+      }
     </section>
   } @else {
     <p class="wi__error">Item no encontrado.</p>

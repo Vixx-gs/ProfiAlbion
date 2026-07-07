@@ -44,6 +44,22 @@
       </div>
     }
 
+    <!-- Animales -->
+    <button class="wiki__node wiki__node--parent" type="button" (click)="toggleSection('animales')">
+      <span class="wiki__arrow" [class.wiki__arrow--open]="expandedSection() === 'animales'">▶</span>
+      Animales
+    </button>
+
+    @if (expandedSection() === 'animales') {
+      <div class="wiki__children">
+        @for (item of ANIMAL_FOLDERS; track item.folder) {
+          <a class="wiki__node wiki__node--leaf" [routerLink]="animalRoute(item.folder)">
+            {{ item.folder }}
+          </a>
+        }
+      </div>
+    }
+
     <!-- Semillas -->
     <button class="wiki__node wiki__node--parent" type="button" (click)="toggleSection('semillas')">
       <span class="wiki__arrow" [class.wiki__arrow--open]="expandedSection() === 'semillas'">▶</span>
