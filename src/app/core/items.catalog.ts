@@ -20,6 +20,15 @@ export const ENCHANTS = [0, 1, 2, 3];
 /** Tiers cubiertos. */
 export const TIERS = [4, 5, 6, 7, 8];
 
+/** IDs de materiales de encantamiento (runas, almas, reliquias) por tier. */
+export const ENCHANT_MATS: Record<number, { rune: string; soul: string; relic: string }> = {
+  4: { rune: 'T4_RUNE', soul: 'T4_SOUL', relic: 'T4_RELIC' },
+  5: { rune: 'T5_RUNE', soul: 'T5_SOUL', relic: 'T5_RELIC' },
+  6: { rune: 'T6_RUNE', soul: 'T6_SOUL', relic: 'T6_RELIC' },
+  7: { rune: 'T7_RUNE', soul: 'T7_SOUL', relic: 'T7_RELIC' },
+  8: { rune: 'T8_RUNE', soul: 'T8_SOUL', relic: 'T8_RELIC' },
+};
+
 function buildAll(): CatalogItem[] {
   const out: CatalogItem[] = [];
   for (const id of Object.keys(NAME_MAP)) {
@@ -51,6 +60,15 @@ export function enchantOf(fullId: string): number {
 export function baseOf(fullId: string): string {
   const at = fullId.indexOf('@');
   return at === -1 ? fullId : fullId.slice(0, at);
+}
+
+/** Cantidad fija de materiales necesaria para un nivel de encantamiento según el tipo de item. */
+export function enchantQty(typeKey: string): number {
+  if (/^MAIN_/.test(typeKey)) return 288;
+  if (/^2H_/.test(typeKey)) return 384;
+  if (/^(ARMOR_|BAG)/.test(typeKey)) return 192;
+  if (/^(HEAD_|SHOES_|CAPE|OFF_)/.test(typeKey)) return 96;
+  return 0;
 }
 
 /** Devuelve "Daga del maestro (T6.2)" a partir del id (T6_MAIN_DAGGER@2). */

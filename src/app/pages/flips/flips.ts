@@ -6,7 +6,6 @@ import {
   FlipResult,
   ScanParams,
 } from '../../core/market-flips.service';
-import { ProxyToggleService } from '../../core/proxy-toggle.service';
 import { ALL_ITEMS, ENCHANTS, TIERS, displayName } from '../../core/items.catalog';
 import { MarketHistory } from './market-history/market-history';
 import { iconUrl as makeIconUrl, preloadIcons } from '../../core/icon-url';
@@ -43,8 +42,6 @@ const CITY_COLORS: Record<string, string> = {
 })
 export class Flips {
   private readonly service = inject(MarketFlipsService);
-  private readonly proxy = inject(ProxyToggleService);
-
   readonly tiers = TIERS;
   readonly buyCities = BUY_CITIES;
   readonly qualities = [
@@ -60,10 +57,7 @@ export class Flips {
   readonly selTiers = signal<Set<number>>(new Set(TIERS));
   readonly buyCity = signal<string | null>(null);
   readonly buyCityOpen = signal(false);
-
-  // ===== Proxy =====
-  readonly proxyEnabled = signal(false);
-  readonly proxyChecking = signal(true);
+  readonly useEnchant = signal(false);
 
   // ===== Resultado =====
   readonly result = signal<FlipResult | null>(null);
@@ -76,6 +70,7 @@ export class Flips {
   readonly search = signal('');
   readonly sortBy = signal<SortKey>('update');
   readonly minProfit = signal(0);
+  readonly sellFilter = signal<'all' | 'instant' | 'order'>('all');
   /** Relleno del slider (0-100%), para pintar la barra de progreso. */
   readonly minProfitPct = computed(() => (this.minProfit() / 1_000_000) * 100);
 
@@ -130,13 +125,15 @@ export class Flips {
     const mp = this.minProfit();
     const hid = this.hidden();
     const city = this.buyCity();
+    const sf = this.sellFilter();
 
     const arr = source.filter(
       (f) =>
         f.profit >= mp &&
         (!q || f.name.toLowerCase().includes(q)) &&
         !hid.has(this.rowKey(f)) &&
-        (!city || f.buyCity === city),
+        (!city || f.buyCity === city) &&
+        (sf === 'all' || (sf === 'instant' ? f.sellBuyMax > 0 : f.sellBuyMax === 0)),
     );
 
     const by = this.sortBy();
@@ -164,19 +161,7 @@ export class Flips {
   }
 
   constructor() {
-    this.proxy.getStatus().subscribe((s) => {
-      this.proxyEnabled.set(s.enabled);
-      this.proxyChecking.set(false);
-    });
     this.fetchFlips();
-  }
-
-  toggleProxy(): void {
-    this.proxyChecking.set(true);
-    this.proxy.toggle(this.proxyEnabled()).subscribe((s) => {
-      this.proxyEnabled.set(s.enabled);
-      this.proxyChecking.set(false);
-    });
   }
 
   // ===== Escaneo =====
@@ -191,7 +176,7 @@ export class Flips {
       return;
     }
 
-    const params: ScanParams = { qualities, tiers };
+    const params: ScanParams = { qualities, tiers, useEnchant: this.useEnchant() };
     this.loading.set(true);
     this.streaming.set(true);
     this.error.set(null);
@@ -233,6 +218,9 @@ export class Flips {
   }
   toggleTier(t: number): void {
     this.toggleIn(this.selTiers, t);
+  }
+  toggleEnchant(): void {
+    this.useEnchant.update((v) => !v);
   }
 
   private toggleIn<T>(sig: { (): Set<T>; set: (v: Set<T>) => void }, val: T): void {
@@ -278,6 +266,10 @@ export class Flips {
     this.sortBy.set((target as HTMLSelectElement).value as SortKey);
     this.resetPage();
   }
+  setSellFilter(v: 'all' | 'instant' | 'order'): void {
+    this.sellFilter.set(v);
+    this.resetPage();
+  }
   setMinProfit(target: EventTarget | null): void {
     this.minProfit.set(Number((target as HTMLInputElement).value) || 0);
     this.resetPage();
@@ -288,10 +280,12 @@ export class Flips {
     this.selQualities.set(new Set([1, 2, 3, 4, 5]));
     this.selTiers.set(new Set(TIERS));
     this.buyCity.set(null);
+    this.useEnchant.set(false);
     // Panel 2 a por defecto.
     this.search.set('');
     this.sortBy.set('update');
     this.minProfit.set(0);
+    this.sellFilter.set('all');
     this.resetPage();
   }
 

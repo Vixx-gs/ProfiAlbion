@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, from, map, mergeMap, of, scan, timeout, catchError } from 'rxjs';
 import { AlbionDataService, HistoryEntry, PriceEntry } from './albion-data.service';
-import { ITEM_CATALOG, ITEM_BY_ID, ENCHANTS, displayName } from './items.catalog';
+import { ITEM_CATALOG, ITEM_BY_ID, ENCHANTS, ENCHANT_MATS, displayName, enchantQty } from './items.catalog';
 
 /** Una oportunidad de flip: comprar en una ciudad normal y vender en el Black Market. */
 export interface MarketFlip {
@@ -24,12 +24,20 @@ export interface MarketFlip {
   updatedAt: string;
   /** Unidades vendidas en el Black Market en las últimas 24h (flujo de venta). */
   volume24h: number;
+  /** Nivel de encantamiento objetivo (1-3) si es un flip de encantamiento. */
+  enchantTo?: number;
+  /** Precio de compra del item base (.0) sin encantar. */
+  basePrice?: number;
+  /** Coste de los materiales de encantamiento. */
+  enchantCost?: number;
 }
 
 /** Parámetros del escaneo (panel "Fetch Flips"). */
 export interface ScanParams {
   qualities: number[];
   tiers: number[];
+  /** Si true, también busca flips de encantamiento (comprar item base + runas y vender encantado en BM). */
+  useEnchant?: boolean;
 }
 
 /** Resultado de un escaneo completo. */
@@ -52,7 +60,7 @@ export class MarketFlipsService {
   /** Timeout por petición (ms): si un lote tarda más, se ignora. */
   private readonly REQUEST_TIMEOUT = 20_000;
   /** Lotes en paralelo (= límite de conexiones del navegador por host). */
-  private readonly CONCURRENCY = 6;
+  private readonly CONCURRENCY = 3;
   /** Máximo de filas devueltas. */
   private readonly MAX_RESULTS = 1000;
 
@@ -78,7 +86,7 @@ export class MarketFlipsService {
     const itemIds = this.expandItemIds(bases.map((i) => i.id));
     const locations = AlbionDataService.CITIES;
 
-    const CHUNK = 40;
+    const CHUNK = 200;
     type Req = { kind: 'price' | 'volume'; ids: string[] };
     const reqs: Req[] = [];
     // Precio y flujo de venta del MISMO lote de items intercalados: mergeMap
@@ -89,6 +97,15 @@ export class MarketFlipsService {
       const ids = itemIds.slice(i, i + CHUNK);
       reqs.push({ kind: 'price', ids });
       reqs.push({ kind: 'volume', ids });
+    }
+
+    if (params.useEnchant) {
+      const matIds: string[] = [];
+      for (const t of params.tiers) {
+        const mats = ENCHANT_MATS[t];
+        if (mats) matIds.push(mats.rune, mats.soul, mats.relic);
+      }
+      if (matIds.length) reqs.push({ kind: 'price', ids: matIds });
     }
 
     interface Acc {
@@ -148,7 +165,7 @@ export class MarketFlipsService {
     qualities: number[],
     seed: PriceEntry[] = [],
   ): Observable<PriceEntry[]> {
-    const CHUNK = 40;
+    const CHUNK = 200;
     const chunks: string[][] = [];
     for (let i = 0; i < ids.length; i += CHUNK) {
       chunks.push(ids.slice(i, i + CHUNK));
@@ -205,12 +222,15 @@ export class MarketFlipsService {
     return byKey;
   }
 
-  /** Construye el resultado completo (flips directos). */
+  /** Construye el resultado completo (flips directos + encantamiento). */
   private buildResult(entries: PriceEntry[], history: HistoryEntry[], params: ScanParams): FlipResult {
     const byId = this.indexFresh(entries, AlbionDataService.CITIES);
     const volumeByKey = this.indexVolume(history);
     const flips: MarketFlip[] = [];
     let analysed = 0;
+
+    // Indexar precios de materiales UNA SOLA VEZ, fuera del bucle.
+    const matPrices = params.useEnchant ? this.indexMatPrices(entries) : new Map<string, number>();
 
     for (const item of ITEM_CATALOG) {
       if (!params.tiers.includes(item.tier)) continue;
@@ -221,6 +241,11 @@ export class MarketFlipsService {
           const id = e === 0 ? item.id : `${item.id}@${e}`;
           flips.push(...this.directFlips(id, q, byId, item.tier, volumeByKey));
           if (byId.has(id)) analysed++;
+        }
+
+        // --- Flip de encantamiento: comprar item base + runas y vender encantado en BM ---
+        if (params.useEnchant) {
+          flips.push(...this.computeEnchantFlips(item, q, byId, matPrices));
         }
       }
     }
@@ -271,6 +296,115 @@ export class MarketFlipsService {
         updatedAt: this.oldest(buy.sell_price_min_date, black.sell_price_min_date),
         volume24h,
       });
+    }
+    return out;
+  }
+
+  // ===== Encantamiento =====
+
+  /** Indexa precios de materiales de encantamiento (item_id|city → sell_price_min). */
+  private indexMatPrices(entries: PriceEntry[]): Map<string, number> {
+    const map = new Map<string, number>();
+    for (const e of entries) {
+      if (!e.sell_price_min) continue;
+      if (!this.isFresh(e.sell_price_min_date)) continue;
+      const key = `${e.item_id}|${e.city}`;
+      if (!map.has(key) || e.sell_price_min < map.get(key)!) {
+        map.set(key, e.sell_price_min);
+      }
+    }
+    return map;
+  }
+
+  /** Coste de materiales para encantar un item de tipo typeKey desde .0 a level. */
+  private calcEnchantMatCost(typeKey: string, tier: number, level: number, matPrices: Map<string, number>, city: string): number {
+    const mats = ENCHANT_MATS[tier];
+    if (!mats) return 0;
+    const qty = enchantQty(typeKey);
+    if (!qty) return 0;
+
+    let cost = 0;
+    if (level >= 1) {
+      const runePrice = matPrices.get(`${mats.rune}|${city}`) ?? 0;
+      if (!runePrice) return 0;
+      cost += qty * runePrice;
+    }
+    if (level >= 2) {
+      const soulPrice = matPrices.get(`${mats.soul}|${city}`) ?? 0;
+      if (!soulPrice) return 0;
+      cost += qty * soulPrice;
+    }
+    if (level >= 3) {
+      const relicPrice = matPrices.get(`${mats.relic}|${city}`) ?? 0;
+      if (!relicPrice) return 0;
+      cost += qty * relicPrice;
+    }
+    return cost;
+  }
+
+  /** Flips de encantamiento: comprar item base + runas y vender encantado en BM. */
+  private computeEnchantFlips(
+    item: import('./items.catalog').CatalogItem,
+    quality: number,
+    byId: Map<string, PriceEntry[]>,
+    matPrices: Map<string, number>,
+  ): MarketFlip[] {
+    const qty = enchantQty(item.typeKey);
+    if (!qty) return [];
+
+    const baseEntries = (byId.get(item.id) ?? []).filter((e) => e.quality === quality);
+    if (!baseEntries.length) return [];
+
+    const bmPrices: Record<number, number> = {};
+    const bmBuyMax: Record<number, number> = {};
+    for (const e of [1, 2, 3]) {
+      const id = `${item.id}@${e}`;
+      const bm = (byId.get(id) ?? []).find(
+        (e2) => e2.city === 'Black Market' && e2.quality === quality,
+      );
+      if (bm) {
+        bmPrices[e] = bm.buy_price_max || bm.sell_price_min;
+        bmBuyMax[e] = bm.buy_price_max || 0;
+      }
+    }
+    if (!Object.keys(bmPrices).length) return [];
+
+    const out: MarketFlip[] = [];
+    for (const buy of baseEntries) {
+      if (buy.city === 'Black Market') continue;
+      const basePrice = buy.sell_price_min;
+      if (!basePrice) continue;
+
+      for (const e of [1, 2, 3]) {
+        const bmPrice = bmPrices[e];
+        if (!bmPrice) continue;
+
+        const matCost = this.calcEnchantMatCost(item.typeKey, item.tier, e, matPrices, buy.city);
+        if (!matCost) continue;
+
+        const totalCost = basePrice + matCost;
+        const profit = bmPrice - totalCost;
+        if (profit <= 0) continue;
+
+        out.push({
+          itemId: `${item.id}@${e}`,
+          name: displayName(`${item.id}@${e}`),
+          tier: item.tier,
+          quality,
+          buyCity: buy.city,
+          buyPrice: totalCost,
+          sellCity: 'Black Market',
+          sellPrice: bmPrice,
+          sellBuyMax: bmBuyMax[e] || 0,
+          profit,
+          marginPct: +((profit / totalCost) * 100).toFixed(2),
+          updatedAt: buy.sell_price_min_date,
+          volume24h: 0,
+          enchantTo: e,
+          basePrice,
+          enchantCost: matCost,
+        });
+      }
     }
     return out;
   }

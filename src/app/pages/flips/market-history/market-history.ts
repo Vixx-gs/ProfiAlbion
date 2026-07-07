@@ -10,16 +10,15 @@ import {
 import { DecimalPipe } from '@angular/common';
 import { AlbionDataService, HistoryPoint } from '../../../core/albion-data.service';
 import { MarketFlip } from '../../../core/market-flips.service';
+import { ENCHANT_MATS, ITEM_BY_ID, baseOf, displayName, enchantQty } from '../../../core/items.catalog';
 import { iconUrl as makeIconUrl } from '../../../core/icon-url';
 
-/** Escala temporal: horas por punto + cuántos puntos mostrar. */
 interface Scale {
   label: string;
   timeScale: number;
   points: number;
 }
 
-/** Geometría calculada de un punto de la gráfica. */
 interface ChartPoint {
   x: number;
   priceY: number;
@@ -28,6 +27,15 @@ interface ChartPoint {
   price: number;
   count: number;
   time: string;
+}
+
+interface EnchantRow {
+  level: number;
+  matCost: number;
+  totalCost: number;
+  bmPrice: number;
+  profit: number;
+  marginPct: number;
 }
 
 @Component({
@@ -39,24 +47,17 @@ interface ChartPoint {
 export class MarketHistory implements OnInit {
   private readonly api = inject(AlbionDataService);
 
-  /** Flip cuyo histórico se muestra. */
   readonly flip = input.required<MarketFlip>();
-  /** Icono alternativo (si no se pasa, usa el itemId del flip). */
   readonly iconId = input<string>('');
-  /** Lista de ciudades (por defecto todas). */
   readonly citiesInput = input<string[]>([]);
-  /** Item secundario para toggle (ej: cultivar → semilla). */
   readonly toggleItemId = input<string>('');
-  /** Etiqueta del item secundario (ej: "Cultivo"). */
   readonly toggleLabel = input<string>('');
-  /** Ruta wiki para el item principal (se abre al hacer click en el icono). */
   readonly wikiRoute = input<string>('');
-  /** Ruta wiki para el item secundario (toggle). */
   readonly wikiRouteToggle = input<string>('');
-  /** Cerrar el modal. */
   readonly close = output<void>();
 
   readonly showingRelated = signal(false);
+  readonly tab = signal<'history' | 'enchant'>('history');
 
   readonly scales: Scale[] = [
     { label: '4 semanas', timeScale: 24, points: 28 },
@@ -66,23 +67,19 @@ export class MarketHistory implements OnInit {
 
   readonly scale = signal<Scale>(this.scales[0]);
 
-  /** Ciudades disponibles para el filtro. */
   readonly cities = computed<string[]>(() => {
     const override = this.citiesInput();
     return override.length ? override : AlbionDataService.CITIES;
   });
-  /** Ciudad cuyo histórico se consulta (por defecto la de venta del flip). */
   readonly selectedCity = signal<string>('');
 
   readonly points = signal<HistoryPoint[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
-  /** Índice del punto resaltado al pasar el ratón. */
   readonly hover = signal<number | null>(null);
 
   private sub?: import('rxjs').Subscription;
 
-  // Dimensiones del lienzo SVG.
   readonly W = 620;
   readonly H = 230;
   private readonly padL = 38;
@@ -90,10 +87,29 @@ export class MarketHistory implements OnInit {
   private readonly padT = 16;
   private readonly padB = 30;
 
+  // Enchant calculator
+  readonly baseItemId = computed(() => baseOf(this.flip().itemId));
+  readonly baseName = computed(() => displayName(this.baseItemId()));
+  readonly enchMats = computed(() => ENCHANT_MATS[this.flip().tier]);
+  readonly buyCity = computed(() => this.flip().buyCity);
+
+  readonly basePrice = signal(0);
+  readonly runePrice = signal(0);
+  readonly soulPrice = signal(0);
+  readonly relicPrice = signal(0);
+  readonly bmPriceLevel = signal<Record<number, number>>({});
+
+  readonly runeInput = signal(0);
+  readonly soulInput = signal(0);
+  readonly relicInput = signal(0);
+
+  readonly loadingEnchant = signal(false);
+  readonly enchError = signal<string | null>(null);
+
   ngOnInit(): void {
-    // Por defecto, la ciudad de venta del flip.
     this.selectedCity.set(this.flip().sellCity);
     this.load();
+    this.loadEnchantPrices();
   }
 
   cityName(): string {
@@ -138,14 +154,108 @@ export class MarketHistory implements OnInit {
     });
   }
 
-  /** Precio medio del periodo mostrado. */
+  private loadEnchantPrices(): void {
+    const mats = this.enchMats();
+    const tier = this.flip().tier;
+    const city = this.buyCity();
+    const quality = this.flip().quality;
+    if (!mats) return;
+
+    this.loadingEnchant.set(true);
+    this.enchError.set(null);
+
+    const enchIds = [1, 2, 3].map((e) => `${this.baseItemId()}@${e}`);
+
+    this.api.getPrices(
+      [this.baseItemId(), mats.rune, mats.soul, mats.relic, ...enchIds],
+      [city, 'Black Market'],
+      quality === 1 ? [1] : [quality, 1],
+    ).subscribe({
+      next: (entries) => {
+        const base = entries.find(
+          (e) => e.item_id === this.baseItemId() && e.city === city && e.quality === quality,
+        );
+        if (base) this.basePrice.set(base.sell_price_min);
+
+        const rune = entries.find(
+          (e) => e.item_id === mats.rune && e.city === city && e.quality === 1,
+        );
+        const soul = entries.find(
+          (e) => e.item_id === mats.soul && e.city === city && e.quality === 1,
+        );
+        const relic = entries.find(
+          (e) => e.item_id === mats.relic && e.city === city && e.quality === 1,
+        );
+
+        const rp = rune?.sell_price_min ?? 0;
+        const sp = soul?.sell_price_min ?? 0;
+        const rlp = relic?.sell_price_min ?? 0;
+
+        this.runePrice.set(rp);
+        this.soulPrice.set(sp);
+        this.relicPrice.set(rlp);
+        this.runeInput.set(rp);
+        this.soulInput.set(sp);
+        this.relicInput.set(rlp);
+
+        const bm: Record<number, number> = {};
+        for (const e of [1, 2, 3]) {
+          const id = `${this.baseItemId()}@${e}`;
+          const bmEntry = entries.find(
+            (e2) => e2.item_id === id && e2.city === 'Black Market' && e2.quality === quality,
+          );
+          if (bmEntry) bm[e] = bmEntry.buy_price_max || bmEntry.sell_price_min;
+        }
+        this.bmPriceLevel.set(bm);
+        this.loadingEnchant.set(false);
+      },
+      error: () => {
+        this.enchError.set('No se pudieron cargar los precios de materiales.');
+        this.loadingEnchant.set(false);
+      },
+    });
+  }
+
+  readonly enchantResults = computed<EnchantRow[]>(() => {
+    const base = this.basePrice();
+    const bm = this.bmPriceLevel();
+    const r = this.runeInput();
+    const s = this.soulInput();
+    const re = this.relicInput();
+    const catalog = ITEM_BY_ID.get(this.baseItemId());
+    const qty = catalog ? enchantQty(catalog.typeKey) : 0;
+
+    if (!base || !qty) return [];
+
+    const out: EnchantRow[] = [];
+    for (let e = 1; e <= 3; e++) {
+      let matCost = 0;
+      if (e >= 1) matCost += qty * r;
+      if (e >= 2) matCost += qty * s;
+      if (e >= 3) matCost += qty * re;
+
+      const totalCost = base + matCost;
+      const bmPrice = bm[e] || 0;
+      const profit = bmPrice - totalCost;
+
+      out.push({
+        level: e,
+        matCost,
+        totalCost,
+        bmPrice,
+        profit,
+        marginPct: totalCost ? +((profit / totalCost) * 100).toFixed(2) : 0,
+      });
+    }
+    return out;
+  });
+
   readonly avgPrice = computed<number>(() => {
     const pts = this.points();
     if (!pts.length) return 0;
     return Math.round(pts.reduce((s, p) => s + p.avg_price, 0) / pts.length);
   });
 
-  /** Geometría de la gráfica (null si no hay datos). */
   readonly chart = computed(() => {
     const pts = this.points();
     if (!pts.length) return null;
@@ -155,7 +265,7 @@ export class MarketHistory implements OnInit {
     const n = pts.length;
     const priceMax = Math.max(...pts.map((p) => p.avg_price), 1);
     const countMax = Math.max(...pts.map((p) => p.item_count), 1);
-    const barAreaH = innerH * 0.5; // las barras ocupan la mitad inferior
+    const barAreaH = innerH * 0.5;
     const stepX = n > 1 ? innerW / (n - 1) : 0;
 
     const fmt = (iso: string): string => {
@@ -184,7 +294,6 @@ export class MarketHistory implements OnInit {
       .map((it, i) => `${i ? 'L' : 'M'}${it.x.toFixed(1)} ${it.priceY.toFixed(1)}`)
       .join(' ');
 
-    // Etiquetas del eje X en 4 posiciones.
     const ticks = [0, Math.floor(n / 3), Math.floor((2 * n) / 3), n - 1]
       .filter((v, i, a) => a.indexOf(v) === i)
       .map((i) => ({ x: items[i].x, label: items[i].time }));
@@ -200,13 +309,11 @@ export class MarketHistory implements OnInit {
     };
   });
 
-  /** Tooltip del punto resaltado. */
   readonly tip = computed(() => {
     const h = this.hover();
     const c = this.chart();
     if (h == null || !c) return null;
     const it = c.items[h];
-    // Lado del tooltip para que no se salga por la derecha.
     const left = it.x > this.W * 0.6;
     return { x: it.x, y: it.priceY, price: it.price, count: it.count, time: it.time, left };
   });
@@ -223,12 +330,10 @@ export class MarketHistory implements OnInit {
     this.close.emit();
   }
 
-  /** ID del item actual según el toggle. */
   readonly currentItemId = computed<string>(() =>
     this.showingRelated() ? this.toggleItemId() : this.flip().itemId,
   );
 
-  /** Ruta wiki activa según el toggle. */
   readonly activeWikiRoute = computed(() =>
     this.showingRelated() ? this.wikiRouteToggle() : this.wikiRoute(),
   );
@@ -242,5 +347,9 @@ export class MarketHistory implements OnInit {
       ? this.toggleItemId()
       : this.iconId() || this.flip().itemId;
     return makeIconUrl(id, 64);
+  }
+
+  inputVal(ev: Event): number {
+    return Number((ev.target as HTMLInputElement).value) || 0;
   }
 }

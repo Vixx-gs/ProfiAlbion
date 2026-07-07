@@ -13,119 +13,194 @@
     }
     <div>
       <h3 class="mh__title">{{ flip().name }}</h3>
-      <p class="mh__sub">Historial de mercado · {{ cityName() }}</p>
+      <p class="mh__sub">· {{ flip().buyCity }} → {{ flip().sellCity }}</p>
     </div>
   </header>
 
-  <!-- Controles -->
-  <div class="mh__controls">
-    @if (toggleItemId()) {
-      <div class="mh__seg">
-        <button class="seg" type="button" [class.seg--on]="!showingRelated()" (click)="setShowingRelated(false)">Semilla</button>
-        <button class="seg" type="button" [class.seg--on]="showingRelated()" (click)="setShowingRelated(true)">{{ toggleLabel() }}</button>
-      </div>
-    }
-    <div class="mh__seg">
-      @for (s of scales; track s.timeScale) {
-        <button class="seg" type="button" [class.seg--on]="scale().timeScale === s.timeScale" (click)="setScale(s)">
-          {{ s.label }}
-        </button>
-      }
-    </div>
-    <label class="mh__city">
-      <span class="mh__city-label">Ciudad</span>
-      <select class="mh__select" (change)="setCity($event.target)">
-        @for (c of cities(); track c) {
-          <option [value]="c" [selected]="selectedCity() === c">{{ c }}</option>
-        }
-      </select>
-    </label>
+  <!-- Tabs -->
+  <div class="mh__tabs">
+    <button class="mh__tab" [class.mh__tab--on]="tab() === 'history'" type="button" (click)="tab.set('history')">Flujo de mercado</button>
+    <button class="mh__tab" [class.mh__tab--on]="tab() === 'enchant'" type="button" (click)="tab.set('enchant')">Encantamiento</button>
   </div>
 
-  <!-- Gráfica -->
-  @if (loading()) {
-    <div class="mh__state">Cargando historial…</div>
-  } @else if (error()) {
-    <div class="mh__state mh__state--error">{{ error() }}</div>
-  } @else if (!chart()) {
-    <div class="mh__state">Sin datos de historial para esta ciudad.</div>
-  } @else {
-    @if (chart(); as c) {
-      <div class="mh__chartwrap">
-        <svg class="mh__chart" [attr.viewBox]="'0 0 ' + W + ' ' + H" (mouseleave)="clearHover()">
-          <!-- Líneas guía superior/inferior -->
-          <line class="grid" [attr.x1]="38" [attr.x2]="W - 16" [attr.y1]="c.topY" [attr.y2]="c.topY" />
-          <line class="grid" [attr.x1]="38" [attr.x2]="W - 16" [attr.y1]="c.baseY" [attr.y2]="c.baseY" />
-
-          <!-- Etiquetas de precio -->
-          <text class="axis" [attr.x]="32" [attr.y]="c.topY + 4" text-anchor="end">
-            {{ c.priceMax | number: '1.0-0' }}
-          </text>
-          <text class="axis" [attr.x]="32" [attr.y]="c.baseY" text-anchor="end">0</text>
-
-          <!-- Barras (cantidad vendida) -->
-          @for (it of c.items; track $index) {
-            <rect
-              class="bar"
-              [class.bar--on]="hover() === $index"
-              [attr.x]="it.x - c.barW / 2"
-              [attr.y]="it.barY"
-              [attr.width]="c.barW"
-              [attr.height]="it.barH"
-              rx="1.5"
-            />
-          }
-
-          <!-- Línea de precio medio -->
-          <path class="line" [attr.d]="c.linePath" />
-
-          <!-- Puntos -->
-          @for (it of c.items; track $index) {
-            <circle class="dot" [class.dot--on]="hover() === $index" [attr.cx]="it.x" [attr.cy]="it.priceY" r="3.5" />
-          }
-
-          <!-- Línea vertical del punto resaltado -->
-          @if (tip(); as t) {
-            <line class="cursor" [attr.x1]="t.x" [attr.x2]="t.x" [attr.y1]="c.topY" [attr.y2]="c.baseY" />
-          }
-
-          <!-- Etiquetas del eje X -->
-          @for (tk of c.ticks; track $index) {
-            <text class="axis" [attr.x]="tk.x" [attr.y]="H - 10" text-anchor="middle">{{ tk.label }}</text>
-          }
-
-          <!-- Zonas de hover (transparentes) -->
-          @for (it of c.items; track $index) {
-            <rect
-              class="hit"
-              [attr.x]="it.x - c.barW"
-              [attr.y]="c.topY"
-              [attr.width]="c.barW * 2"
-              [attr.height]="c.baseY - c.topY"
-              (mouseenter)="setHover($index)"
-            />
-          }
-        </svg>
-
-        <!-- Tooltip -->
-        @if (tip(); as t) {
-          <div
-            class="mh__tip"
-            [class.mh__tip--left]="t.left"
-            [style.left.%]="(t.x / W) * 100"
-            [style.top.%]="(t.y / H) * 100"
-          >
-            <span class="mh__tip-row">Precio medio: <b>{{ t.price | number: '1.0-0' }}</b></span>
-            <span class="mh__tip-row">Vendido: <b>{{ t.count | number: '1.0-0' }}</b></span>
-            <span class="mh__tip-time">{{ t.time }}</span>
-          </div>
+  @if (tab() === 'history') {
+    <!-- Controles -->
+    <div class="mh__controls">
+      @if (toggleItemId()) {
+        <div class="mh__seg">
+          <button class="seg" type="button" [class.seg--on]="!showingRelated()" (click)="setShowingRelated(false)">Semilla</button>
+          <button class="seg" type="button" [class.seg--on]="showingRelated()" (click)="setShowingRelated(true)">{{ toggleLabel() }}</button>
+        </div>
+      }
+      <div class="mh__seg">
+        @for (s of scales; track s.timeScale) {
+          <button class="seg" type="button" [class.seg--on]="scale().timeScale === s.timeScale" (click)="setScale(s)">
+            {{ s.label }}
+          </button>
         }
       </div>
+      <label class="mh__city">
+        <span class="mh__city-label">Ciudad</span>
+        <select class="mh__select" (change)="setCity($event.target)">
+          @for (c of cities(); track c) {
+            <option [value]="c" [selected]="selectedCity() === c">{{ c }}</option>
+          }
+        </select>
+      </label>
+    </div>
 
-      <footer class="mh__foot">
-        <span>Precio medio del periodo: <b>{{ avgPrice() | number: '1.0-0' }}</b> plata</span>
-        <span class="mh__hint">Pasa el ratón por la gráfica para ver el detalle.</span>
-      </footer>
+    <!-- Gráfica -->
+    @if (loading()) {
+      <div class="mh__state">Cargando historial…</div>
+    } @else if (error()) {
+      <div class="mh__state mh__state--error">{{ error() }}</div>
+    } @else if (!chart()) {
+      <div class="mh__state">Sin datos de historial para esta ciudad.</div>
+    } @else {
+      @if (chart(); as c) {
+        <div class="mh__chartwrap">
+          <svg class="mh__chart" [attr.viewBox]="'0 0 ' + W + ' ' + H" (mouseleave)="clearHover()">
+            <line class="grid" [attr.x1]="38" [attr.x2]="W - 16" [attr.y1]="c.topY" [attr.y2]="c.topY" />
+            <line class="grid" [attr.x1]="38" [attr.x2]="W - 16" [attr.y1]="c.baseY" [attr.y2]="c.baseY" />
+
+            <text class="axis" [attr.x]="32" [attr.y]="c.topY + 4" text-anchor="end">
+              {{ c.priceMax | number: '1.0-0' }}
+            </text>
+            <text class="axis" [attr.x]="32" [attr.y]="c.baseY" text-anchor="end">0</text>
+
+            @for (it of c.items; track $index) {
+              <rect
+                class="bar"
+                [class.bar--on]="hover() === $index"
+                [attr.x]="it.x - c.barW / 2"
+                [attr.y]="it.barY"
+                [attr.width]="c.barW"
+                [attr.height]="it.barH"
+                rx="1.5"
+              />
+            }
+
+            <path class="line" [attr.d]="c.linePath" />
+
+            @for (it of c.items; track $index) {
+              <circle class="dot" [class.dot--on]="hover() === $index" [attr.cx]="it.x" [attr.cy]="it.priceY" r="3.5" />
+            }
+
+            @if (tip(); as t) {
+              <line class="cursor" [attr.x1]="t.x" [attr.x2]="t.x" [attr.y1]="c.topY" [attr.y2]="c.baseY" />
+            }
+
+            @for (tk of c.ticks; track $index) {
+              <text class="axis" [attr.x]="tk.x" [attr.y]="H - 10" text-anchor="middle">{{ tk.label }}</text>
+            }
+
+            @for (it of c.items; track $index) {
+              <rect
+                class="hit"
+                [attr.x]="it.x - c.barW"
+                [attr.y]="c.topY"
+                [attr.width]="c.barW * 2"
+                [attr.height]="c.baseY - c.topY"
+                (mouseenter)="setHover($index)"
+              />
+            }
+          </svg>
+
+          @if (tip(); as t) {
+            <div
+              class="mh__tip"
+              [class.mh__tip--left]="t.left"
+              [style.left.%]="(t.x / W) * 100"
+              [style.top.%]="(t.y / H) * 100"
+            >
+              <span class="mh__tip-row">Precio medio: <b>{{ t.price | number: '1.0-0' }}</b></span>
+              <span class="mh__tip-row">Vendido: <b>{{ t.count | number: '1.0-0' }}</b></span>
+              <span class="mh__tip-time">{{ t.time }}</span>
+            </div>
+          }
+        </div>
+
+        <footer class="mh__foot">
+          <span>Precio medio del periodo: <b>{{ avgPrice() | number: '1.0-0' }}</b> plata</span>
+          <span class="mh__hint">Pasa el ratón por la gráfica para ver el detalle.</span>
+        </footer>
+      }
     }
+  }
+
+  @if (tab() === 'enchant') {
+    <div class="ench">
+      @if (loadingEnchant()) {
+        <div class="mh__state">Cargando precios de materiales…</div>
+      } @else if (enchError()) {
+        <div class="mh__state mh__state--error">{{ enchError() }}</div>
+      } @else {
+        <div class="ench__info">
+          <span class="ench__label">Item base</span>
+          <span class="ench__value">{{ baseName() }}</span>
+          <span class="ench__label">Precio base en {{ buyCity() }}</span>
+          <span class="ench__value">{{ basePrice() | number: '1.0-0' }} <i>plata</i></span>
+        </div>
+
+        <div class="ench__mats">
+          <span class="ench__section-title">Precio de materiales en {{ buyCity() }}</span>
+          <div class="ench__fields">
+            <label class="ench__field">
+              <span class="ench__field-label">Runas (T{{ flip().tier }})</span>
+              <span class="ench__field-row">
+                <input class="ench__input" type="number" [value]="runeInput()" (input)="runeInput.set(inputVal($event))" />
+                <span class="ench__auto" [title]="'Precio de mercado: ' + (runePrice() | number: '1.0-0')">@if (runePrice()) { auto: {{ runePrice() | number: '1.0-0' }} }</span>
+              </span>
+            </label>
+            <label class="ench__field">
+              <span class="ench__field-label">Almas (T{{ flip().tier }})</span>
+              <span class="ench__field-row">
+                <input class="ench__input" type="number" [value]="soulInput()" (input)="soulInput.set(inputVal($event))" />
+                <span class="ench__auto" [title]="'Precio de mercado: ' + (soulPrice() | number: '1.0-0')">@if (soulPrice()) { auto: {{ soulPrice() | number: '1.0-0' }} }</span>
+              </span>
+            </label>
+            <label class="ench__field">
+              <span class="ench__field-label">Reliquias (T{{ flip().tier }})</span>
+              <span class="ench__field-row">
+                <input class="ench__input" type="number" [value]="relicInput()" (input)="relicInput.set(inputVal($event))" />
+                <span class="ench__auto" [title]="'Precio de mercado: ' + (relicPrice() | number: '1.0-0')">@if (relicPrice()) { auto: {{ relicPrice() | number: '1.0-0' }} }</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="ench__results">
+          <span class="ench__section-title">Resultados</span>
+          <table class="ench__table">
+            <thead>
+              <tr>
+                <th>Encantar a</th>
+                <th class="num">Coste mat.</th>
+                <th class="num">Coste total</th>
+                <th class="num">Precio BM</th>
+                <th class="num">Beneficio</th>
+                <th class="num">Margen</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of enchantResults(); track row.level) {
+                <tr>
+                  <td>.0 → .{{ row.level }}</td>
+                  <td class="num">{{ row.matCost | number: '1.0-0' }}</td>
+                  <td class="num">{{ row.totalCost | number: '1.0-0' }}</td>
+                  <td class="num">{{ row.bmPrice | number: '1.0-0' }}</td>
+                  <td class="num" [class.ench__profit]="row.profit > 0" [class.ench__loss]="row.profit <= 0">
+                    @if (row.profit > 0) { + }{{ row.profit | number: '1.0-0' }}
+                  </td>
+                  <td class="num" [class.ench__profit]="row.profit > 0" [class.ench__loss]="row.profit <= 0">
+                    {{ row.marginPct }} %
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
   }
 </div>

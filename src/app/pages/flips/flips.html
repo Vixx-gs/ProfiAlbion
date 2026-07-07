@@ -5,12 +5,6 @@
       Compra barato en cualquier ciudad y vende siempre en el <strong>Black Market</strong> (nunca se
       compra allí).
     </p>
-    <p class="fp__proxy">
-      <button class="proxy-toggle" [class.proxy-toggle--on]="proxyEnabled()" [disabled]="proxyChecking()" type="button" (click)="toggleProxy()">
-        <span class="proxy-toggle__dot"></span>
-        <span class="proxy-toggle__label">{{ proxyEnabled() ? 'Proxy activo' : 'Proxy inactivo' }}</span>
-      </button>
-    </p>
   </header>
 
   <!-- ===== Panel 1: parámetros de escaneo ===== -->
@@ -71,7 +65,17 @@
           }
         </div>
       </div>
-    </div>
+
+      <div class="grp">
+        <span class="grp__title">Usar runas/almas/reliquias</span>
+        <div class="grp__opts">
+          <button class="sw" [class.sw--on]="useEnchant()" type="button" (click)="toggleEnchant()">
+            <span class="sw__track"><span class="sw__knob"></span></span>
+            <span class="sw__label">{{ useEnchant() ? 'Sí' : 'No' }}</span>
+          </button>
+        </div>
+      </div>
+      </div>
 
     <div class="scan__foot">
       <button class="btn btn--primary" type="button" (click)="fetchFlips()" [disabled]="loading()">
@@ -129,6 +133,14 @@
           <option value="margin" [selected]="sortBy() === 'margin'">Margen de beneficio</option>
           <option value="volume" [selected]="sortBy() === 'volume'">Mayor flujo de venta</option>
         </select>
+      </label>
+      <label class="f2">
+        <span class="f2__label">Tipo de venta</span>
+        <span class="seg-group">
+          <button class="seg" [class.seg--on]="sellFilter() === 'all'" type="button" (click)="setSellFilter('all')">Todos</button>
+          <button class="seg" [class.seg--on]="sellFilter() === 'instant'" type="button" (click)="setSellFilter('instant')">Venta directa</button>
+          <button class="seg" [class.seg--on]="sellFilter() === 'order'" type="button" (click)="setSellFilter('order')">Orden de venta</button>
+        </span>
       </label>
       <label class="f2 f2--slider">
         <span class="f2__label">Profit Per Item Min</span>
@@ -215,8 +227,8 @@
                     height="60"
                     decoding="async"
                   />
-                  <span class="item-text">
-                    <span class="item-name">{{ f.name }}</span>
+                    <span class="item-text">
+                    <span class="item-name" [attr.data-ench]="f.enchantTo ? '0→' + f.enchantTo : null">{{ f.name }}</span>
                     <span class="item-sub">
                       <span class="item-quality" [class]="'q' + f.quality">{{ qualityLabel(f.quality) }}</span>
                     </span>
@@ -232,24 +244,13 @@
                 </td>
                 <td>
                   <span class="city"><span class="citydot" [style.background]="cityColor(f.sellCity)"></span>{{ f.sellCity }}</span>
-                  <span class="sell-price">
-                    <span class="price">{{ f.sellBuyMax | number: '1.0-0' }} <i>plata</i></span>
-                    <button class="pop-toggle" type="button" title="Ver orden de venta" (click)="togglePopover(rowKey(f), $event)">
-                      <svg viewBox="0 0 12 12" width="11" height="11">
-                        <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
-                      </svg>
-                    </button>
-                    @if (openPopover() === rowKey(f)) {
-                      <span class="pop" (click)="$event.stopPropagation()">
-                        <span class="pop__label">Orden de venta</span>
-                        @if (f.sellPrice) {
-                          <span class="pop__price">{{ f.sellPrice | number: '1.0-0' }} <i>plata</i></span>
-                        } @else {
-                          <span class="pop__empty">Sin órdenes de venta</span>
-                        }
-                      </span>
-                    }
-                  </span>
+                  @if (f.sellBuyMax) {
+                    <span class="price price--instant" title="Precio de compra instantánea">{{ f.sellBuyMax | number: '1.0-0' }} <i>plata</i></span>
+                    <span class="price-tag">Compra instantánea</span>
+                  } @else {
+                    <span class="price" title="Precio de orden de venta">{{ f.sellPrice | number: '1.0-0' }} <i>plata</i></span>
+                    <span class="price-tag price-tag--warn">Orden de venta</span>
+                  }
                 </td>
                 <td class="num profit">+{{ f.profit | number: '1.0-0' }}</td>
                 <td class="num profit">{{ f.marginPct | number: '1.0-2' }} %</td>

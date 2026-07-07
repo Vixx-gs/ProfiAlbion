@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, timeout, catchError, of } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 
 /** Precio de un item en una ubicación, tal cual lo devuelve AODP. */
 export interface PriceEntry {
@@ -47,11 +47,12 @@ export interface HistoryEntry {
 export class AlbionDataService {
   private readonly http = inject(HttpClient);
 
-  /** Proxy local (mitmproxy) para datos frescos del juego. */
-  private readonly localProxy = 'http://127.0.0.1:3456/api/v2/stats';
-
   /** Base de la API para el servidor de Europa. */
   private readonly base = 'https://europe.albion-online-data.com/api/v2/stats';
+
+  /** Caché simple de peticiones (60s de TTL). */
+  private cache = new Map<string, { obs: Observable<PriceEntry[]>; expiry: number }>();
+  private readonly CACHE_TTL = 60_000;
 
   /** Ciudades del mercado en el servidor de Europa + Black Market. */
   static readonly CITIES = [
@@ -85,16 +86,14 @@ export class AlbionDataService {
       params.push('qualities=' + qualities.join(','));
     }
     const query = params.length ? '?' + params.join('&') : '';
-    const aodpUrl = `${this.base}/prices/${ids}.json${query}`;
-    const localUrl = `${this.localProxy}/prices/${ids}.json${query}`;
+    const url = `${this.base}/prices/${ids}.json${query}`;
 
-    return this.http.get<PriceEntry[]>(localUrl).pipe(
-      timeout(3000),
-      catchError(() => {
-        console.warn('[AlbionData] Proxy miss, falling back to AODP');
-        return this.http.get<PriceEntry[]>(aodpUrl);
-      }),
-    );
+    const cached = this.cache.get(url);
+    if (cached && cached.expiry > Date.now()) return cached.obs;
+
+    const obs = this.http.get<PriceEntry[]>(url).pipe(shareReplay(1));
+    this.cache.set(url, { obs, expiry: Date.now() + this.CACHE_TTL });
+    return obs;
   }
 
   /** Precio del oro: últimas `count` entradas. */

@@ -122,7 +122,7 @@
   color: var(--gold-bright);
 }
 
-/* ===== Tarjeta de flips ===== */
+/* ===== Tarjeta de flips (ancho casi completo) ===== */
 .flips {
   position: relative;
   margin: 26px 0 0;
@@ -133,6 +133,7 @@
   animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.28s both;
   box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.8);
 }
+.flips-section { max-width: 1600px; }
 /* Borde superior con degradado dorado */
 .flips::before {
   content: '';
@@ -194,7 +195,7 @@
   border-bottom: 1px solid var(--border);
 }
 .table tbody td {
-  padding: 14px;
+  padding: 18px 14px;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }
@@ -225,12 +226,12 @@
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 .item-icon {
   flex: none;
-  width: 60px;
-  height: 60px;
+  width: 120px;
+  height: 120px;
   object-fit: contain;
   transition: transform 0.2s;
 }
@@ -274,6 +275,17 @@
 .citydot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4); }
 .price { font-weight: 700; }
 .price i { font-style: normal; color: var(--text-dim); font-weight: 400; font-size: 12px; }
+.price--instant { color: var(--text); }
+.price-tag {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--profit);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+.price-tag--warn { color: var(--gold); }
 .profit {
   color: var(--profit);
   font-weight: 800;

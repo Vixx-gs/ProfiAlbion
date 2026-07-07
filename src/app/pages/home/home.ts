@@ -1,7 +1,8 @@
 import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { MarketFlipsService, MarketFlip } from '../../core/market-flips.service';
+import { MarketFlipsService, MarketFlip, ScanParams } from '../../core/market-flips.service';
+import { TIERS } from '../../core/items.catalog';
 import { iconUrl } from '../../core/icon-url';
 
 /** Color identificativo de cada ciudad (puntos junto al nombre). */
@@ -26,22 +27,18 @@ export class Home {
   private readonly flipsService = inject(MarketFlipsService);
 
   /** Cuántas oportunidades pedimos a la API. */
-  private readonly FETCH_LIMIT = 40;
-  /** Filas que se añaden cada vez que se pulsa "Ver más". */
-  private readonly PAGE_STEP = 8;
+  private readonly FETCH_LIMIT = 5;
+
+  private readonly scanParams: ScanParams = {
+    qualities: [1, 2, 3, 4, 5],
+    tiers: TIERS,
+  };
 
   readonly flips = signal<MarketFlip[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
 
-  /** Cuántas filas se muestran (paginación incremental). */
-  readonly visibleCount = signal(this.PAGE_STEP);
-
-  /** Filas realmente visibles según la paginación. */
-  readonly visible = computed<MarketFlip[]>(() => this.flips().slice(0, this.visibleCount()));
-
-  /** ¿Quedan más filas por mostrar tras las visibles? */
-  readonly hasMore = computed(() => this.flips().length > this.visibleCount());
+  readonly visible = computed<MarketFlip[]>(() => this.flips().slice(0, this.FETCH_LIMIT));
 
   /** itemId de la fila con el bocadillo de "compra instantánea" abierto. */
   readonly openPopover = signal<string | null>(null);
@@ -63,10 +60,9 @@ export class Home {
   loadFlips(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.visibleCount.set(this.PAGE_STEP);
-    this.flipsService.getTopFlips(this.FETCH_LIMIT).subscribe({
-      next: (flips) => {
-        this.flips.set(flips);
+    this.flipsService.getFlips(this.scanParams).subscribe({
+      next: (res) => {
+        this.flips.set([...res.flips].sort((a, b) => b.profit - a.profit).filter((f) => f.profit >= 100000).slice(0, this.FETCH_LIMIT));
         this.loading.set(false);
       },
       error: () => {
@@ -76,9 +72,6 @@ export class Home {
     });
   }
 
-  showMore(): void {
-    this.visibleCount.update((n) => n + this.PAGE_STEP);
-  }
 
   private readonly QUALITY_LABELS: Record<number, string> = {
     1: 'Normal',
@@ -107,7 +100,7 @@ export class Home {
   }
 
   iconUrl(id: string): string {
-    return iconUrl(id, 90);
+    return iconUrl(id, 120);
   }
 
   /** "hace X min" a partir de una fecha ISO (UTC). */

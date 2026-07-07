@@ -18,7 +18,7 @@
 </section>
 
 <!-- Market flips en directo -->
-<section class="container">
+<section class="container flips-section">
   <div class="flips">
     <div class="flips__head">
       <div>
@@ -58,15 +58,15 @@
             @for (f of visible(); track f.itemId + '|' + f.quality) {
               <tr>
                 <td class="cell-item">
-                  <img
-                    class="item-icon"
-                    [src]="iconUrl(f.itemId)"
-                    [alt]="f.name"
-                    loading="lazy"
-                    width="60"
-                    height="60"
-                    decoding="async"
-                  />
+                    <img
+                      class="item-icon"
+                      [src]="iconUrl(f.itemId)"
+                      [alt]="f.name"
+                      loading="lazy"
+                      width="120"
+                      height="120"
+                      decoding="async"
+                    />
                   <span class="item-text">
                     <span class="item-name">{{ f.name }}</span>
                     <span class="item-quality" [class]="'q' + f.quality">
@@ -84,30 +84,11 @@
                 </td>
                 <td>
                   <span class="city"><span class="citydot" [style.background]="cityColor(f.sellCity)"></span>{{ f.sellCity }}</span>
-                  <span class="sell-price">
-                    <span class="price">{{ f.sellPrice | number: '1.0-0' }} <i>plata</i></span>
-                    <button
-                      class="pop-toggle"
-                      type="button"
-                      title="Ver compra instantánea"
-                      (click)="togglePopover(f.itemId + '|' + f.quality, $event)"
-                    >
-                      <svg viewBox="0 0 12 12" width="11" height="11">
-                        <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
-                      </svg>
-                    </button>
-
-                    @if (openPopover() === f.itemId + '|' + f.quality) {
-                      <span class="pop" (click)="$event.stopPropagation()">
-                        <span class="pop__label">Compra instantánea</span>
-                        @if (f.sellBuyMax) {
-                          <span class="pop__price">{{ f.sellBuyMax | number: '1.0-0' }} <i>plata</i></span>
-                        } @else {
-                          <span class="pop__empty">Sin órdenes de compra</span>
-                        }
-                      </span>
-                    }
-                  </span>
+                  @if (f.sellBuyMax) {
+                    <span class="price price--instant" title="Precio de compra instantánea">{{ f.sellBuyMax | number: '1.0-0' }} <i>plata</i></span>
+                  } @else {
+                    <span class="price" title="Precio de orden de venta">{{ f.sellPrice | number: '1.0-0' }} <i>plata</i></span>
+                  }
                 </td>
                 <td class="num profit">+{{ f.profit | number: '1.0-0' }}</td>
                 <td class="num profit">{{ f.marginPct | number: '1.0-0' }} %</td>
@@ -118,11 +99,6 @@
       </div>
 
       <div class="flips__foot">
-        @if (hasMore()) {
-          <button class="btn btn--ghost btn--sm" type="button" (click)="showMore()">
-            Ver más
-          </button>
-        }
         <button class="btn btn--primary" type="button" routerLink="/flips">Abrir calculadora de flips</button>
       </div>
     }

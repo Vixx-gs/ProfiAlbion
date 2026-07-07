@@ -46,7 +46,3 @@ Thumbs.db
 # Claude Code local config
 /.claude/
 
-# Proxy runtime files
-/proxy/__pycache__/
-/proxy/discovery.ndjson
-/proxy/market_cache.json
