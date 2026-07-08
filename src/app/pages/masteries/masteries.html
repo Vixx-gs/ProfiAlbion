@@ -18,12 +18,90 @@
         <div class="sheet-card" [class.sheet-card--active]="activeId() === sheet.id">
           @if (editingId() === sheet.id) {
             <div class="sheet-form">
-              <input class="input" [(ngModel)]="formName" placeholder="Nombre del personaje" />
-              <textarea
-                class="input input--area"
-                [(ngModel)]="formDescription"
-                placeholder="Descripción (opcional)"
-              ></textarea>
+              <div class="combo" (click)="$event.stopPropagation()">
+                <input
+                  class="input combo__input"
+                  type="text"
+                  placeholder="Nombre del personaje…"
+                  autocomplete="off"
+                  [value]="formName"
+                  (input)="onSearchInput($event.target)"
+                  (focus)="searchOpen.set(searchResults().length > 0)"
+                  (blur)="closeSearch()"
+                />
+                @if (searching()) {
+                  <span class="combo__spinner"></span>
+                }
+                @if (formName && !searching()) {
+                  <button class="combo__clear" type="button" title="Limpiar" (click)="clearSearch()">✕</button>
+                }
+                @if (searchOpen() && searchResults().length) {
+                  <div class="combo__list">
+                    @for (r of searchResults(); track r.Id) {
+                      <button class="combo__opt" type="button" (click)="selectPlayer(r)">
+                        <span class="combo__opt-name">{{ r.Name }}</span>
+                        @if (r.GuildName) {
+                          <span class="combo__opt-guild">{{ r.GuildName }}</span>
+                        }
+                      <span class="combo__opt-fame">{{ formatFame(r.KillFame) }} PvP</span>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+              <div class="sheet-avatar-picker">
+                <button class="sheet-avatar-picker__btn" type="button" (click)="avatarPickerOpen.set(!avatarPickerOpen())">
+                  @if (avatarUrl(formAvatar); as url) {
+                    <img class="sheet-avatar-picker__preview" [src]="url" alt="" width="48" height="48" />
+                  } @else {
+                    <span class="sheet-avatar-picker__preview sheet-avatar-picker__preview--init">{{ formName.charAt(0).toUpperCase() || '?' }}</span>
+                  }
+                  <span class="sheet-avatar-picker__label">Cambiar avatar</span>
+                </button>
+                @if (avatarPickerOpen()) {
+                  <div class="sheet-avatar-picker__grid">
+                    @for (a of AVATARS; track a) {
+                      <button class="sheet-avatar-picker__opt" [class.sheet-avatar-picker__opt--sel]="formAvatar === a" type="button" (click)="selectAvatar(a)">
+                        <img [src]="avatarUrl(a)" alt="" width="40" height="40" loading="lazy" />
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+              <fieldset class="sheet-fields">
+                <label class="sheet-field">
+                  <span class="sheet-field__label">Gremio</span>
+                  <input class="input" type="text" placeholder="—" [(ngModel)]="formGuild" />
+                </label>
+                <label class="sheet-field">
+                  <span class="sheet-field__label">Alianza</span>
+                  <input class="input" type="text" placeholder="—" [(ngModel)]="formAlliance" />
+                </label>
+                <label class="sheet-field">
+                  <span class="sheet-field__label">Tag Alianza</span>
+                  <input class="input" type="text" placeholder="—" [(ngModel)]="formAllianceTag" />
+                </label>
+                <label class="sheet-field">
+                  <span class="sheet-field__label">Fame PvP</span>
+                  <input class="input" type="number" min="0" placeholder="0" [(ngModel)]="formKillFame" />
+                </label>
+                <label class="sheet-field">
+                  <span class="sheet-field__label">Fame Muerte</span>
+                  <input class="input" type="number" min="0" placeholder="0" [(ngModel)]="formDeathFame" />
+                </label>
+                <label class="sheet-field">
+                  <span class="sheet-field__label">Fame PvE</span>
+                  <input class="input" type="number" min="0" placeholder="0" [(ngModel)]="formPvEFame" />
+                </label>
+                <label class="sheet-field">
+                  <span class="sheet-field__label">Recolección</span>
+                  <input class="input" type="number" min="0" placeholder="0" [(ngModel)]="formGatheringFame" />
+                </label>
+                <label class="sheet-field">
+                  <span class="sheet-field__label">Crafteo</span>
+                  <input class="input" type="number" min="0" placeholder="0" [(ngModel)]="formCraftingFame" />
+                </label>
+              </fieldset>
               <div class="sheet-form__actions">
                 <button class="btn btn--ghost btn--sm" type="button" (click)="cancelForm()">Cancelar</button>
                 <button class="btn btn--primary btn--sm" type="button" (click)="saveForm()">Guardar</button>
@@ -31,8 +109,25 @@
             </div>
           } @else {
             <div class="sheet-card__main">
-              <span class="sheet-card__name">{{ sheet.name }}</span>
-              <span class="sheet-card__desc">{{ sheet.description || 'Sin descripción' }}</span>
+              <div class="sheet-card__head">
+                @if (avatarUrl(sheet.avatar); as url) {
+                  <img class="sheet-card__avatar" [src]="url" alt="" width="36" height="36" />
+                } @else {
+                  <span class="sheet-card__avatar sheet-card__avatar--init">{{ sheet.name.charAt(0).toUpperCase() }}</span>
+                }
+                <div>
+                  <span class="sheet-card__name">{{ sheet.name }}</span>
+                  @if (sheet.guildName) {
+                    <span class="sheet-card__detail">{{ sheet.guildName }}@if (sheet.allianceTag) { · [{{ sheet.allianceTag }}] }</span>
+                  }
+                </div>
+              </div>
+              <div class="sheet-card__stats">
+                <span class="sheet-card__stat"><span class="stat-dot stat-dot--pvp"></span>{{ formatFame(sheet.killFame) }}</span>
+                <span class="sheet-card__stat"><span class="stat-dot stat-dot--pve"></span>{{ formatFame(sheet.pveFame) }}</span>
+                <span class="sheet-card__stat"><span class="stat-dot stat-dot--gath"></span>{{ formatFame(sheet.gatheringFame) }}</span>
+                <span class="sheet-card__stat"><span class="stat-dot stat-dot--craft"></span>{{ formatFame(sheet.craftingFame) }}</span>
+              </div>
               <span class="sheet-card__date">Creado: {{ formatDate(sheet.createdAt) }}</span>
             </div>
             <div class="sheet-card__side">
@@ -64,12 +159,90 @@
       @if (creating()) {
         <div class="sheet-card sheet-card--new">
           <div class="sheet-form">
-            <input class="input" [(ngModel)]="formName" placeholder="Nombre del personaje" autofocus />
-            <textarea
-              class="input input--area"
-              [(ngModel)]="formDescription"
-              placeholder="Descripción (opcional)"
-            ></textarea>
+            <div class="combo" (click)="$event.stopPropagation()">
+              <input
+                class="input combo__input"
+                type="text"
+                placeholder="Nombre del personaje…"
+                autocomplete="off"
+                [value]="formName"
+                (input)="onSearchInput($event.target)"
+                (focus)="searchOpen.set(searchResults().length > 0)"
+                (blur)="closeSearch()"
+              />
+              @if (searching()) {
+                <span class="combo__spinner"></span>
+              }
+              @if (formName && !searching()) {
+                <button class="combo__clear" type="button" title="Limpiar" (click)="clearSearch()">✕</button>
+              }
+              @if (searchOpen() && searchResults().length) {
+                <div class="combo__list">
+                  @for (r of searchResults(); track r.Id) {
+                    <button class="combo__opt" type="button" (click)="selectPlayer(r)">
+                      <span class="combo__opt-name">{{ r.Name }}</span>
+                      @if (r.GuildName) {
+                        <span class="combo__opt-guild">{{ r.GuildName }}</span>
+                      }
+                      <span class="combo__opt-fame">{{ formatFame(r.KillFame) }} fame</span>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+            <div class="sheet-avatar-picker">
+              <button class="sheet-avatar-picker__btn" type="button" (click)="avatarPickerOpen.set(!avatarPickerOpen())">
+                @if (avatarUrl(formAvatar); as url) {
+                  <img class="sheet-avatar-picker__preview" [src]="url" alt="" width="48" height="48" />
+                } @else {
+                  <span class="sheet-avatar-picker__preview sheet-avatar-picker__preview--init">{{ formName.charAt(0).toUpperCase() || '?' }}</span>
+                }
+                <span class="sheet-avatar-picker__label">Cambiar avatar</span>
+              </button>
+              @if (avatarPickerOpen()) {
+                <div class="sheet-avatar-picker__grid">
+                  @for (a of AVATARS; track a) {
+                    <button class="sheet-avatar-picker__opt" [class.sheet-avatar-picker__opt--sel]="formAvatar === a" type="button" (click)="selectAvatar(a)">
+                      <img [src]="avatarUrl(a)" alt="" width="40" height="40" loading="lazy" />
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+            <fieldset class="sheet-fields">
+              <label class="sheet-field">
+                <span class="sheet-field__label">Gremio</span>
+                <input class="input" type="text" placeholder="—" [(ngModel)]="formGuild" />
+              </label>
+              <label class="sheet-field">
+                <span class="sheet-field__label">Alianza</span>
+                <input class="input" type="text" placeholder="—" [(ngModel)]="formAlliance" />
+              </label>
+              <label class="sheet-field">
+                <span class="sheet-field__label">Tag Alianza</span>
+                <input class="input" type="text" placeholder="—" [(ngModel)]="formAllianceTag" />
+              </label>
+              <label class="sheet-field">
+                <span class="sheet-field__label">Fame PvP</span>
+                <input class="input" type="number" min="0" placeholder="0" [(ngModel)]="formKillFame" />
+              </label>
+              <label class="sheet-field">
+                <span class="sheet-field__label">Fame Muerte</span>
+                <input class="input" type="number" min="0" placeholder="0" [(ngModel)]="formDeathFame" />
+              </label>
+              <label class="sheet-field">
+                <span class="sheet-field__label">Fame PvE</span>
+                <input class="input" type="number" min="0" placeholder="0" [(ngModel)]="formPvEFame" />
+              </label>
+              <label class="sheet-field">
+                <span class="sheet-field__label">Recolección</span>
+                <input class="input" type="number" min="0" placeholder="0" [(ngModel)]="formGatheringFame" />
+              </label>
+              <label class="sheet-field">
+                <span class="sheet-field__label">Crafteo</span>
+                <input class="input" type="number" min="0" placeholder="0" [(ngModel)]="formCraftingFame" />
+              </label>
+            </fieldset>
             <div class="sheet-form__actions">
               <button class="btn btn--ghost btn--sm" type="button" (click)="cancelForm()">Cancelar</button>
               <button class="btn btn--primary btn--sm" type="button" (click)="saveForm()">Guardar</button>

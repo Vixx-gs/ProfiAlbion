@@ -113,6 +113,21 @@ button { font-family: inherit; cursor: pointer; }
   padding: 0 24px;
 }
 
+/* ===== Image placeholders & loading ===== */
+img {
+  background: var(--bg-card);
+  animation: imgFadeIn 0.35s ease;
+}
+
+img[src$=".png"] {
+  background: var(--bg-card);
+}
+
+@keyframes imgFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* ===== Animaciones reutilizables ===== */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(18px); }

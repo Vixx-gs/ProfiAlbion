@@ -183,6 +183,21 @@
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
 }
 
+.city-opt--bonus {
+  border-color: var(--gold-deep);
+  background: rgba(245, 185, 66, 0.06);
+}
+
+.city-opt__badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--gold-bright);
+  background: rgba(245, 185, 66, 0.15);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 2px;
+}
+
 .result-summary {
   display: flex;
   gap: 16px;
@@ -205,6 +220,16 @@
 .result-summary__city .city-opt__dot {
   width: 8px;
   height: 8px;
+}
+
+.result-summary__bonus {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--profit);
+  background: rgba(60, 200, 100, 0.12);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 4px;
 }
 
 .field {

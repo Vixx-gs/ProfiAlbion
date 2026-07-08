@@ -61,6 +61,8 @@ const CITY_COLORS: Record<string, string> = {
   'Black Market': '#2b2f3a',
 };
 
+const ALL_HERB_IDS = HERBS.map(h => h.id);
+
 const BIOME_BONUS: Record<string, string[]> = {
   Bridgewatch: ['BEAN', 'CORN', 'TEASEL'],
   Martlock: ['WHEAT', 'POTATO', 'FOXGLOVE'],
@@ -68,7 +70,17 @@ const BIOME_BONUS: Record<string, string[]> = {
   Lymhurst: ['CARROT', 'PUMPKIN', 'BURDOCK'],
   'Fort Sterling': ['TURNIP', 'YARROW'],
   Caerleon: ['COMFREY', 'TEASEL', 'MULLEIN'],
-  Brecilien: ['CARROT', 'BEAN', 'WHEAT', 'TURNIP', 'CABBAGE', 'POTATO', 'CORN', 'PUMPKIN'],
+  Brecilien: [...CROPS.map(c => c.id), ...ALL_HERB_IDS],
+};
+
+const BIOME_BONUS_PCT: Record<string, number> = {
+  Bridgewatch: 10,
+  Martlock: 10,
+  Thetford: 10,
+  Lymhurst: 10,
+  'Fort Sterling': 10,
+  Caerleon: 10,
+  Brecilien: 4,
 };
 
 type FarmingTab = 'crops' | 'herbs';
@@ -193,18 +205,22 @@ export class Farming {
     const premium = this.premium();
     const seedPrice = this.seedPrice();
     const yieldPrice = this.yieldPrice();
+    const fPrice = this.focusPrice();
 
     const premiumMult = premium ? 2 : 1;
-    const biomeBonus = (BIOME_BONUS[this.plantCity()] ?? []).includes(item.id) ? 1.1 : 1;
+    const hasBiome = (BIOME_BONUS[this.plantCity()] ?? []).includes(item.id);
+    const biomePct = hasBiome ? (BIOME_BONUS_PCT[this.plantCity()] ?? 0) : 0;
+    const biomeMultiplier = 1 + biomePct / 100;
 
     const seedsNeeded = n;
     const seedsPerPlot = item.seedsPerHarvest + (focus ? item.focusBonus : 0);
-    const seedsBackWorst = Math.floor(seedsPerPlot) * n;
-    const seedsBack = Math.ceil(seedsPerPlot) * n;
-    const grossYield = Math.floor(item.yieldPerHarvest * n * premiumMult * biomeBonus);
+    const avgSeedsBack = seedsPerPlot * n;
+    const seedsBackWorst = Math.floor(seedsPerPlot * n);
+    const seedsBackBest = Math.ceil(seedsPerPlot * n);
+    const grossYield = Math.floor(item.yieldPerHarvest * n * premiumMult * biomeMultiplier);
 
-    const yieldRangeMin = Math.floor(3 * premiumMult * biomeBonus);
-    const yieldRangeMax = Math.ceil(6 * premiumMult * biomeBonus);
+    const yieldRangeMin = Math.floor(3 * premiumMult * biomeMultiplier);
+    const yieldRangeMax = Math.ceil(6 * premiumMult * biomeMultiplier);
 
     const worstGrossYield = yieldRangeMin * n;
     const bestGrossYield = yieldRangeMax * n;
@@ -212,18 +228,18 @@ export class Farming {
     const bestIncomeYield = Math.round(bestGrossYield * yieldPrice);
 
     const seedCost = Math.round(seedsNeeded * seedPrice);
-    const incomeSeeds = Math.round(seedsBack * seedPrice * 0.6);
+    const incomeSeeds = Math.round(avgSeedsBack * seedPrice);
     const incomeYield = Math.round(grossYield * yieldPrice);
     const totalIncome = incomeSeeds + incomeYield;
     const totalCost = seedCost;
     const profit = totalIncome - totalCost;
     const roi = totalCost > 0 ? (profit / totalCost) * 100 : 0;
 
-    const worstTotalIncome = worstIncomeYield;
+    const worstTotalIncome = worstIncomeYield + incomeSeeds;
     const worstProfit = worstTotalIncome - totalCost;
     const worstRoi = totalCost > 0 ? (worstProfit / totalCost) * 100 : 0;
 
-    const bestTotalIncome = bestIncomeYield;
+    const bestTotalIncome = bestIncomeYield + incomeSeeds;
     const bestProfit = bestTotalIncome - totalCost;
     const bestRoi = totalCost > 0 ? (bestProfit / totalCost) * 100 : 0;
 
@@ -231,11 +247,13 @@ export class Farming {
     const profitPerPlot = profit / n;
     const profitPerHour = hours > 0 ? profitPerPlot / hours : 0;
     const totalFocus = focus ? this.focusCostInput() * n : 0;
+    const focusSilverCost = Math.round(totalFocus * fPrice);
 
     return {
       seedsNeeded,
       seedsBackWorst,
-      seedsBack,
+      seedsBack: seedsBackBest,
+      avgSeedsBack,
       grossYield,
       worstGrossYield,
       bestGrossYield,
@@ -257,7 +275,8 @@ export class Farming {
       profitPerPlot,
       profitPerHour,
       totalFocus,
-      biomeBonus,
+      focusSilverCost,
+      biomePct,
     };
   });
 
@@ -291,12 +310,19 @@ export class Farming {
 
   ago(iso: string): string {
     if (!iso) return '';
-    const min = Math.max(0, Math.round((Date.now() - new Date(iso + 'Z').getTime()) / 60000));
+    const dateStr = iso.includes('T') ? iso : iso + 'T00:00:00';
+    const d = new Date(dateStr + 'Z');
+    if (isNaN(d.getTime())) return '';
+    const min = Math.max(0, Math.round((Date.now() - d.getTime()) / 60000));
     if (min < 60) return `hace ${min} min`;
     const h = Math.round(min / 60);
     if (h < 24) return `hace ${h} h`;
+    if (min > 525600) return ''; // > 1 año = dato desactualizado, no mostrar
     return `hace ${Math.round(h / 24)} d`;
   }
+
+  protected readonly BIOME_BONUS = BIOME_BONUS;
+  protected readonly BIOME_BONUS_PCT = BIOME_BONUS_PCT;
 
   cityColor(city: string): string {
     return CITY_COLORS[city] ?? 'var(--text-dim)';

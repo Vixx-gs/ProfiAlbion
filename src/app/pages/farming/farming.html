@@ -59,10 +59,14 @@
               class="city-opt"
               type="button"
               [class.city-opt--active]="plantCity() === city"
+              [class.city-opt--bonus]="BIOME_BONUS[city]?.includes(currentSelected().id)"
               (click)="setPlantCity(city)"
             >
               <span class="city-opt__dot" [style.background]="cityColor(city)"></span>
               {{ city }}
+              @if (BIOME_BONUS[city]?.includes(currentSelected().id)) {
+                <span class="city-opt__badge">+{{ BIOME_BONUS_PCT[city] }}%</span>
+              }
             </button>
           }
         </div>
@@ -133,7 +137,7 @@
           </div>
           <div class="result-detail__row">
             <span>Bono de isla</span>
-            <span>{{ result().biomeBonus > 1 ? '10' : '0' }} %</span>
+            <span>{{ result().biomePct }} %</span>
           </div>
           <div class="result-detail__row">
             <span>Bono diario de riego</span>
@@ -149,8 +153,14 @@
           </div>
           <div class="result-detail__row">
             <span>Rendimiento de semillas (total)</span>
-            <span>{{ (currentSelected().seedsPerHarvest + (focus() ? currentSelected().focusBonus : 0)) * 100 | number:'1.1-1' }} %</span>
+            <span>{{ result().avgSeedsBack | number:'1.1-1' }} / {{ plots() }} parcelas</span>
           </div>
+          @if (focus()) {
+            <div class="result-detail__row">
+              <span>Coste de foco en plata</span>
+              <span>{{ result().focusSilverCost | number:'1.0-0' }} <i>plata</i></span>
+            </div>
+          }
         </div>
       </div>
 
@@ -160,6 +170,9 @@
         <div class="result-summary__city">
           <span class="city-opt__dot" [style.background]="cityColor(plantCity())"></span>
           Isla: {{ plantCity() }}
+          @if (result().biomePct > 0) {
+            <span class="result-summary__bonus">+{{ result().biomePct }}%</span>
+          }
         </div>
         <div class="result-summary__city">
           <span class="city-opt__dot" [style.background]="cityColor(marketCity())"></span>
@@ -175,7 +188,7 @@
         <div class="result-card"
           [class.roi-negative]="result().bestRoi < 0"
           [class.roi-high]="result().bestRoi > 70">
-          <span class="result-card__label">Mejor caso de rendimiento del producto <em>(semillas no incluidas)</em></span>
+          <span class="result-card__label">Mejor caso de rendimiento del producto <em>(semillas incluidas)</em></span>
           <span class="result-card__value result-card__value--row">
             <span>{{ result().bestTotalIncome | number:'1.0-0' }} <i>Ingreso total</i></span>
             <span [class.result-card--negative]="result().bestProfit < 0">
@@ -187,7 +200,7 @@
         <div class="result-card"
           [class.roi-negative]="result().worstRoi < 0"
           [class.roi-high]="result().worstRoi > 70">
-          <span class="result-card__label">Peor caso de rendimiento del producto <em>(semillas no incluidas)</em></span>
+          <span class="result-card__label">Peor caso de rendimiento del producto <em>(semillas incluidas)</em></span>
           <span class="result-card__value result-card__value--row">
             <span>{{ result().worstTotalIncome | number:'1.0-0' }} <i>Ingreso total</i></span>
             <span [class.result-card--negative]="result().worstProfit < 0">
@@ -204,8 +217,8 @@
           <span>{{ result().seedsNeeded | number:'1.0-0' }}</span>
         </div>
           <div class="result-detail__row">
-            <span>Semillas devueltas</span>
-            <span>{{ result().seedsBackWorst | number:'1.0-0' }} – {{ result().seedsBack | number:'1.0-0' }}</span>
+            <span>Semillas devueltas (aprox.)</span>
+            <span>{{ result().seedsBackWorst }} – {{ result().seedsBack }}</span>
           </div>
           <div class="result-detail__row">
             <span>Cosecha total</span>

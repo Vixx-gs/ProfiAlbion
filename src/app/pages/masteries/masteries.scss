@@ -110,14 +110,40 @@
   font-weight: 800;
   color: var(--gold-bright);
 }
-.sheet-card__desc {
-  font-size: 13px;
+.sheet-card__detail {
+  font-size: 12px;
   color: var(--text-muted);
 }
-.sheet-card__date {
+.sheet-card__stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.sheet-card__stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12px;
+  font-weight: 700;
   color: var(--text-dim);
 }
+.sheet-card__date {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.stat-dot--pvp { background: var(--danger); }
+.stat-dot--pve { background: var(--primary); }
+.stat-dot--gath { background: var(--profit); }
+.stat-dot--craft { background: var(--violet); }
 
 .sheet-card__side {
   display: flex;
@@ -200,14 +226,168 @@
   outline: none;
   border-color: var(--primary);
 }
-.input--area {
-  resize: vertical;
-  min-height: 56px;
-}
 .sheet-form__actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+/* ===== Combo / search ===== */
+.combo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.combo__input {
+  flex: 1;
+  padding-right: 32px;
+}
+.combo__clear {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  translate: 0 -50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--text-dim);
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+}
+.combo__clear:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+.combo__spinner {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  translate: 0 -50%;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.combo__list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.combo__opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  text-align: left;
+  transition: background 0.12s;
+}
+.combo__opt:hover {
+  background: var(--bg-hover);
+}
+.combo__opt + .combo__opt {
+  border-top: 1px solid var(--border);
+}
+.combo__opt-name {
+  font-weight: 700;
+  font-size: 13px;
+}
+.combo__opt-guild {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+.combo__opt-fame {
+  font-size: 11px;
+  color: var(--text-dim);
+  flex: none;
+}
+
+/* ===== Avatar ===== */
+.sheet-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sheet-card__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: none;
+  background: var(--bg-2);
+}
+.sheet-card__avatar--init {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  background: var(--bg-3);
+  border: 1px solid var(--border-strong);
+}
+
+/* ===== Player form fields ===== */
+.sheet-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+.sheet-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sheet-field__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.sheet-field .input {
+  font-size: 13px;
+  padding: 7px 10px;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+.stat__label {
+  color: var(--text-dim);
+}
+.stat__val {
+  font-weight: 700;
+  color: var(--text);
 }
 
 /* ===== Gestión de maestrías (toolbar) ===== */
@@ -358,7 +538,7 @@
   padding-top: 12px;
 }
 
-/* ===== Grid de sub-maestrías (p.ej. elaboradores de Alquimia) ===== */
+/* ===== Grid de sub-maestrías ===== */
 .mastery-sub-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -476,4 +656,84 @@
   width: auto;
   padding: 0 8px;
   font-size: 11px;
+}
+
+/* ===== Avatar picker ===== */
+.sheet-avatar-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sheet-avatar-picker__btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.sheet-avatar-picker__btn:hover {
+  border-color: var(--primary);
+}
+.sheet-avatar-picker__preview {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: none;
+  background: var(--bg-3);
+}
+.sheet-avatar-picker__preview--init {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  border: 1px solid var(--border-strong);
+}
+.sheet-avatar-picker__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.sheet-avatar-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  padding: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.sheet-avatar-picker__opt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.sheet-avatar-picker__opt:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+.sheet-avatar-picker__opt--sel {
+  border-color: var(--primary);
+  background: rgba(71, 154, 255, 0.1);
+}
+.sheet-avatar-picker__opt img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
 }

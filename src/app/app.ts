@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, afterNextRender } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Navbar } from './layout/navbar/navbar';
+import { fallbackIcon } from './core/icon-url';
 
 @Component({
   selector: 'app-root',
@@ -8,4 +9,15 @@ import { Navbar } from './layout/navbar/navbar';
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {}
+export class App {
+  constructor() {
+    afterNextRender(() => {
+      document.addEventListener('error', (e) => {
+        const target = e.target as HTMLImageElement | undefined;
+        if (target?.tagName === 'IMG' && target.src.startsWith('https://render.albiononline.com')) {
+          target.src = fallbackIcon();
+        }
+      }, true);
+    });
+  }
+}

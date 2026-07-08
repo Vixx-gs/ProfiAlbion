@@ -311,10 +311,14 @@ export class Breeding {
 
   ago(iso: string): string {
     if (!iso) return '';
-    const min = Math.max(0, Math.round((Date.now() - new Date(iso + 'Z').getTime()) / 60000));
+    const dateStr = iso.includes('T') ? iso : iso + 'T00:00:00';
+    const d = new Date(dateStr + 'Z');
+    if (isNaN(d.getTime())) return '';
+    const min = Math.max(0, Math.round((Date.now() - d.getTime()) / 60000));
     if (min < 60) return `hace ${min} min`;
     const h = Math.round(min / 60);
     if (h < 24) return `hace ${h} h`;
+    if (min > 525600) return ''; // > 1 año = dato desactualizado, no mostrar
     return `hace ${Math.round(h / 24)} d`;
   }
 

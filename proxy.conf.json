@@ -1,0 +1,11 @@
+{
+  "/api/gameinfo": {
+    "target": "https://gameinfo-ams.albiononline.com",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/api/gameinfo": "/api/gameinfo"
+    }
+  }
+}
