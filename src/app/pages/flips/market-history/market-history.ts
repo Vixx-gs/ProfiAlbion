@@ -52,11 +52,13 @@ export class MarketHistory implements OnInit {
   readonly citiesInput = input<string[]>([]);
   readonly toggleItemId = input<string>('');
   readonly toggleLabel = input<string>('');
+  readonly toggleItemId2 = input<string>('');
+  readonly toggleLabel2 = input<string>('');
   readonly wikiRoute = input<string>('');
   readonly wikiRouteToggle = input<string>('');
   readonly close = output<void>();
 
-  readonly showingRelated = signal(false);
+  readonly relatedIndex = signal(0);
   readonly tab = signal<'history' | 'enchant'>('history');
 
   readonly scales: Scale[] = [
@@ -330,23 +332,28 @@ export class MarketHistory implements OnInit {
     this.close.emit();
   }
 
-  readonly currentItemId = computed<string>(() =>
-    this.showingRelated() ? this.toggleItemId() : this.flip().itemId,
-  );
+  readonly currentItemId = computed<string>(() => {
+    const i = this.relatedIndex();
+    if (i === 1) return this.toggleItemId();
+    if (i === 2) return this.toggleItemId2();
+    return this.flip().itemId;
+  });
 
-  readonly activeWikiRoute = computed(() =>
-    this.showingRelated() ? this.wikiRouteToggle() : this.wikiRoute(),
-  );
+  readonly activeWikiRoute = computed(() => {
+    const i = this.relatedIndex();
+    if (i === 1) return this.wikiRouteToggle();
+    if (i === 2) return this.wikiRouteToggle();
+    return this.wikiRoute();
+  });
 
-  setShowingRelated(v: boolean): void {
-    this.showingRelated.set(v);
+  setRelatedIndex(i: number): void {
+    this.relatedIndex.set(i);
     this.load();
   }
   iconUrl(): string {
-    const id = this.showingRelated() && this.toggleItemId()
-      ? this.toggleItemId()
-      : this.iconId() || this.flip().itemId;
-    return makeIconUrl(id, 64);
+    const i = this.relatedIndex();
+    const id = i === 1 ? this.toggleItemId() : i === 2 ? this.toggleItemId2() : '';
+    return makeIconUrl(id || this.iconId() || this.flip().itemId, 64);
   }
 
   inputVal(ev: Event): number {

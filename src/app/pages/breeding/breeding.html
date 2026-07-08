@@ -287,6 +287,8 @@
     [citiesInput]="marketCities"
     [toggleItemId]="selAnimal().meatId"
     toggleLabel="Carne"
+    [toggleItemId2]="selAnimal().productId ?? ''"
+    toggleLabel2="Producto"
     (close)="closeHistory()"
   />
 }

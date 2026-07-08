@@ -28,8 +28,11 @@
     <div class="mh__controls">
       @if (toggleItemId()) {
         <div class="mh__seg">
-          <button class="seg" type="button" [class.seg--on]="!showingRelated()" (click)="setShowingRelated(false)">Semilla</button>
-          <button class="seg" type="button" [class.seg--on]="showingRelated()" (click)="setShowingRelated(true)">{{ toggleLabel() }}</button>
+          <button class="seg" type="button" [class.seg--on]="relatedIndex() === 0" (click)="setRelatedIndex(0)">Semilla</button>
+          <button class="seg" type="button" [class.seg--on]="relatedIndex() === 1" (click)="setRelatedIndex(1)">{{ toggleLabel() }}</button>
+          @if (toggleItemId2()) {
+            <button class="seg" type="button" [class.seg--on]="relatedIndex() === 2" (click)="setRelatedIndex(2)">{{ toggleLabel2() }}</button>
+          }
         </div>
       }
       <div class="mh__seg">
