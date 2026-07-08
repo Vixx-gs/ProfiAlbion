@@ -20,7 +20,9 @@
   <!-- Tabs -->
   <div class="mh__tabs">
     <button class="mh__tab" [class.mh__tab--on]="tab() === 'history'" type="button" (click)="tab.set('history')">Flujo de mercado</button>
-    <button class="mh__tab" [class.mh__tab--on]="tab() === 'enchant'" type="button" (click)="tab.set('enchant')">Encantamiento</button>
+    @if (enchMats()) {
+      <button class="mh__tab" [class.mh__tab--on]="tab() === 'enchant'" type="button" (click)="tab.set('enchant')">Encantamiento</button>
+    }
   </div>
 
   @if (tab() === 'history') {
