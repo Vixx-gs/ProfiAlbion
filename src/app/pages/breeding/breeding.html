@@ -285,10 +285,12 @@
     [flip]="flip"
     [iconId]="historyIconId()"
     [citiesInput]="marketCities"
-    [toggleItemId]="selAnimal().meatId"
-    toggleLabel="Carne"
-    [toggleItemId2]="selAnimal().productId ?? ''"
-    toggleLabel2="Producto"
+    [toggleItemId]="selAnimal().adultId"
+    toggleLabel="Adulto"
+    [toggleItemId2]="selAnimal().meatId"
+    toggleLabel2="Carne"
+    [toggleItemId3]="selAnimal().productId ?? ''"
+    toggleLabel3="Producto"
     (close)="closeHistory()"
   />
 }

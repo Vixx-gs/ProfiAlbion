@@ -54,6 +54,8 @@ export class MarketHistory implements OnInit {
   readonly toggleLabel = input<string>('');
   readonly toggleItemId2 = input<string>('');
   readonly toggleLabel2 = input<string>('');
+  readonly toggleItemId3 = input<string>('');
+  readonly toggleLabel3 = input<string>('');
   readonly wikiRoute = input<string>('');
   readonly wikiRouteToggle = input<string>('');
   readonly close = output<void>();
@@ -336,6 +338,7 @@ export class MarketHistory implements OnInit {
     const i = this.relatedIndex();
     if (i === 1) return this.toggleItemId();
     if (i === 2) return this.toggleItemId2();
+    if (i === 3) return this.toggleItemId3();
     return this.flip().itemId;
   });
 
@@ -343,6 +346,7 @@ export class MarketHistory implements OnInit {
     const i = this.relatedIndex();
     if (i === 1) return this.wikiRouteToggle();
     if (i === 2) return this.wikiRouteToggle();
+    if (i === 3) return this.wikiRouteToggle();
     return this.wikiRoute();
   });
 
@@ -352,7 +356,7 @@ export class MarketHistory implements OnInit {
   }
   iconUrl(): string {
     const i = this.relatedIndex();
-    const id = i === 1 ? this.toggleItemId() : i === 2 ? this.toggleItemId2() : '';
+    const id = i === 1 ? this.toggleItemId() : i === 2 ? this.toggleItemId2() : i === 3 ? this.toggleItemId3() : '';
     return makeIconUrl(id || this.iconId() || this.flip().itemId, 64);
   }
 

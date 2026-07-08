@@ -28,10 +28,13 @@
     <div class="mh__controls">
       @if (toggleItemId()) {
         <div class="mh__seg">
-          <button class="seg" type="button" [class.seg--on]="relatedIndex() === 0" (click)="setRelatedIndex(0)">Semilla</button>
+          <button class="seg" type="button" [class.seg--on]="relatedIndex() === 0" (click)="setRelatedIndex(0)">Cría</button>
           <button class="seg" type="button" [class.seg--on]="relatedIndex() === 1" (click)="setRelatedIndex(1)">{{ toggleLabel() }}</button>
           @if (toggleItemId2()) {
             <button class="seg" type="button" [class.seg--on]="relatedIndex() === 2" (click)="setRelatedIndex(2)">{{ toggleLabel2() }}</button>
+          }
+          @if (toggleItemId3()) {
+            <button class="seg" type="button" [class.seg--on]="relatedIndex() === 3" (click)="setRelatedIndex(3)">{{ toggleLabel3() }}</button>
           }
         </div>
       }
